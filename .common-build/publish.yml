@@ -1,0 +1,4 @@
+images:
+  remote: artcsp-docker
+  items:
+    - name: vcc/common-build-agent

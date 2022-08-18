@@ -1,0 +1,10 @@
+artifacts:
+  items:
+    - path: org/simple-device
+      qualifiers:
+        - src: src/headers/**
+        - src: build/objects/**
+      remote: null
+      repository: ara
+  defaults: null
+images: null

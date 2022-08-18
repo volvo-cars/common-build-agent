@@ -1,0 +1,25 @@
+toolImage: artcsp-docker.ara-artifactory.volvocars.biz/vcc/common-build-agent:latest
+version: 1
+build:
+  steps:
+    - type: compose
+      nodes:
+        dev:
+          image: artcsp-docker.ara-artifactory.volvocars.biz/vcc/common-build-dev:0.3.0
+          dependsOn:
+            - redis
+          internalPorts: []
+          startCmd: null
+        redis:
+          image: redis:6.2-alpine
+          dependsOn: []
+          internalPorts:
+            - 6379
+          startCmd: null
+      commands:
+        - cmd: npm install && npm run build
+          node: dev
+    - type: build
+      name: vcc/common-build-agent
+      file: docker/Dockerfile
+  optimizers: null

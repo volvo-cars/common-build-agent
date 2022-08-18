@@ -1,0 +1,11 @@
+sources:
+storages:
+  - id: ara
+    type: artifactory
+    host: ara-artifactory.volvocars.biz
+    token: csp/common-build/ara-artifactory-token
+  - id: artcsp-docker
+    type: docker
+    host: artcsp-docker.ara-artifactory.volvocars.biz
+    token: csp/common-build/artcsp-docker-auth
+    registryRepository: artcsp-docker

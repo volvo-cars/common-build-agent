@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote name="origin" fetch="ssh://csp-gerrit-qa.volvocars.net" review=""/>
+  <default revision="master" remote="origin" sync-s="true" sync-j="4" sync-c="true"/>
+  <!-- component -->
+  <project path="components/a" name="playground/cynosure_a.git" label="a" revision="refs/tags/v1.28.0"/>
+
+</manifest>
