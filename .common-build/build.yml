@@ -5,7 +5,7 @@ build:
     - type: compose
       nodes:
         dev:
-          image: artcsp-docker.ara-artifactory.volvocars.biz/vcc/common-build-dev:0.3.0
+          image: artcsp-docker.ara-artifactory.volvocars.biz/vcc/common-build-dev:0.5.0
           dependsOn:
             - redis
           internalPorts: []
