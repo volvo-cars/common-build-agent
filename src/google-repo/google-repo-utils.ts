@@ -39,7 +39,7 @@ export class GoogleRepoUtils {
           const ssh_config = `
 Host ${config.host}
 User ${config.sshUser}
-IdentityFile${keyFileName}
+IdentityFile ${keyFileName}
 
 `
           console.log("Writing SSH config: " + ssh_config)
