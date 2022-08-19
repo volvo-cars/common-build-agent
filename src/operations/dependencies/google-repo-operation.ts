@@ -14,8 +14,6 @@ export class GoogleRepoOperation implements Operations.Operation {
             if (defaultXml) {
                 console.log(`Processing default.xml`)
                 const hostExtractor = new DefaultXmlHostExtractor(defaultXml.toString())
-
-
                 const googleRepo = new GoogleRepoUtils(vaultService)
                 return googleRepo.downloadRepo(_.trimEnd(process.cwd(), " /"), hostExtractor.extract()).then(() => {
                     console.log("Downloaded all dependencies in default.xml")

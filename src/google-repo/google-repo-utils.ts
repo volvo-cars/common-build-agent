@@ -28,7 +28,6 @@ export class GoogleRepoUtils {
         const idKey = this.vaultIdRewrite[id] || id
         return Promise.all(["user", "ssh-key"].map(suffix => {
           const secretKey = `csp/common-build/${idKey}-${suffix}`
-          console.log("Resolving secret: " + secretKey)
           return this.vaultService.getSecret(secretKey)
         })).then(([sshUser, sshKey]) => {
           return new GoogleRepoConfig(id, host, sshUser, sshKey)
@@ -51,7 +50,6 @@ User ${config.sshUser}
 IdentityFile ${keyFileName}
 
 `
-          console.log("Writing SSH config: " + ssh_config)
           fs.writeFileSync(keyFileName, config.sshKey + "\n", { mode: 0o600 })
           fs.appendFileSync(`${sshConfigDir}/config`, ssh_config, { mode: 0o600 })
         }
