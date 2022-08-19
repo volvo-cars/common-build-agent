@@ -4,31 +4,39 @@ import fs from "fs"
 import os from 'os'
 import { ensureString } from "../utils/ensures"
 
+export class GoogleRepoSSHId {
+  constructor(public readonly vaultKeyPrefix: string, public sshHost: string) { }
+}
+
+class GoogleRepoConfig {
+  constructor(public readonly id: string, public readonly host: string, public readonly sshUser: string, public readonly sshKey: string) { }
+}
+
 export class GoogleRepoUtils {
   constructor(private vaultService: VaultService) { }
 
-  downloadRepo(path: string): Promise<void> {
-    const vault = new VaultServiceImpl({
-      endpoint: "https://winterfell.csp-dev.net",
-      token: ensureString(process.env.VAULT_TOKEN, "ENV[VAULT_TOKEN] missing."),
-      apiVersion: "v1",
-    })
-    const secretNames = ["csp/common-build/csp-gerrit-user", "csp/common-build/csp-gerrit-ssh-key"]
-    const ssh_config = `Host csp-gerrit-qa.volvocars.net
-                        User common-build
-                        IdentityFile ~/.ssh/id_rsa`
+  downloadRepo(path: string, sshIds: GoogleRepoSSHId[]): Promise<void> {
 
-    return Promise.all(
-      secretNames.map((secretName) => {
-        return this.vaultService.getSecret(secretName)
+    return Promise.all(sshIds.map(sshId => {
+      return Promise.all(["user", "key"].map(suffix => { return this.vaultService.getSecret(`csp/common-build/${sshId.vaultKeyPrefix}-${suffix}`) })).then(([sshUser, sshKey]) => {
+        return new GoogleRepoConfig(sshId.vaultKeyPrefix, sshId.sshHost, sshUser, sshKey)
       })
-    ).then(([username, key]) => {
+    })).then(configs => {
       const sshConfigDir = `${os.homedir()}/.ssh`
       if (!fs.existsSync(sshConfigDir)) {
         fs.mkdirSync(sshConfigDir, { recursive: true })
       }
-      fs.writeFileSync(`${sshConfigDir}/id_rsa`, key + "\n", { mode: 0o600 })
-      fs.writeFileSync(`${sshConfigDir}/config`, ssh_config, { mode: 0o600 })
+      configs.forEach(config => {
+        const keyFileName = `${sshConfigDir}/id_rsa_${config.id}`
+        const ssh_config = `
+Host ${config.host}
+User ${config.sshUser}
+IdentityFile${keyFileName}
+
+`
+        fs.writeFileSync(keyFileName, config.sshKey + "\n", { mode: 0o600 })
+        fs.appendFileSync(`${sshConfigDir}/config`, ssh_config, { mode: 0o600 })
+      })
       this.repoInit(path)
       this.repoSync()
     })
