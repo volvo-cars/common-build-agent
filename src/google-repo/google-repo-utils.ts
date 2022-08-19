@@ -1,8 +1,8 @@
 import { execSync } from "child_process"
-import { VaultService } from "../vault/vault-service"
 import fs from "fs"
-import os from 'os'
 import _ from 'lodash'
+import os from 'os'
+import { VaultService } from "../vault/vault-service"
 
 export class GoogleRepoSSHId {
   constructor(public readonly vaultKeyPrefix: string, public sshHost: string) { }
@@ -15,14 +15,19 @@ class GoogleRepoConfig {
 export class GoogleRepoUtils {
   constructor(private vaultService: VaultService) { }
 
+  private vaultIdRewrite: Record<string, string> = {
+    "csp-gerrit-ssh": "csp-gerrit"
+  }
+
   downloadRepo(path: string, sshHosts: string[]): Promise<void> {
     console.log(`Processing google-repo on ${path}: ${sshHosts.join(", ")}`)
     return Promise.all(sshHosts.map(host => {
       const parts = host.split(".")
       const id = _.first(parts)
       if (id) {
+        const idKey = this.vaultIdRewrite[id] || id
         return Promise.all(["user", "ssh-key"].map(suffix => {
-          const secretKey = `csp/common-build/${id}-${suffix}`
+          const secretKey = `csp/common-build/${idKey}-${suffix}`
           console.log("Resolving secret: " + secretKey)
           return this.vaultService.getSecret(secretKey)
         })).then(([sshUser, sshKey]) => {
