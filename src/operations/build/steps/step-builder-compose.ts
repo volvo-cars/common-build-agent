@@ -33,19 +33,19 @@ set -e
 
         snippets.push(`
 shutdown${step}() {
-    echo "docker-compose down..."
-    echo "$dockerComposeYml${step}" | docker-compose -f - -p cb-${id.session} down
+    echo "docker compose down..."
+    echo "$dockerComposeYml${step}" | docker compose -f - -p cb-${id.session} down
 }
 on_error${step}() {
-    echo "Error-code:$1 on line $2" >&2
+    echo "Error: $1 on line $2" >&2
     shutdown${step}
     exit $1
 }
 trap 'on_error${step} $? $LINENO' ERR
     `)
-        snippets.push(`echo "$dockerComposeYml${step}" | docker-compose -f - -p cb-${id.session} up --detach`)
+        snippets.push(`echo "$dockerComposeYml${step}" | docker compose -f - -p cb-${id.session} up --detach`)
         snippets.push("echo Containers started:")
-        snippets.push(`echo "$dockerComposeYml${step}" | docker-compose -f - -p cb-${id.session} ps`)
+        snippets.push(`echo "$dockerComposeYml${step}" | docker compose -f - -p cb-${id.session} ps`)
         commands.forEach(command => {
             const getSingleNodeId = (): string => {
                 if (this.config.nodes.size === 1) {

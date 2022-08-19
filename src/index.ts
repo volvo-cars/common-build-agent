@@ -96,7 +96,7 @@ yargs
           if (publicationConfig.artifacts) {
             return new PublishArtifactsOperation(publicationConfig.artifacts, <ServiceConfig.ArtifactoryStorage[]>getConfig(args.config).storages.filter(f => { return f instanceof ServiceConfig.ArtifactoryStorage }))
           } else {
-            return `Missing .artifacts section in ${PublicationConfig.FILE_PATH}.`
+            return `Missing artifacts section in ${PublicationConfig.FILE_PATH}.`
           }
         } else {
           return `No publications. No ${PublicationConfig.FILE_PATH} file found. `
