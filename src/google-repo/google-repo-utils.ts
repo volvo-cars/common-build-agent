@@ -21,7 +21,11 @@ export class GoogleRepoUtils {
       const parts = host.split(".")
       const id = _.first(parts)
       if (id) {
-        return Promise.all(["user", "key"].map(suffix => { return this.vaultService.getSecret(`csp/common-build/${id}-${suffix}`) })).then(([sshUser, sshKey]) => {
+        return Promise.all(["user", "key"].map(suffix => {
+          const secretKey = `csp/common-build/${id}-${suffix}`
+          console.log("Resolving secret: " + secretKey)
+          return this.vaultService.getSecret(secretKey)
+        })).then(([sshUser, sshKey]) => {
           return new GoogleRepoConfig(id, host, sshUser, sshKey)
         })
       } else {
@@ -49,6 +53,9 @@ IdentityFile ${keyFileName}
       })
       this.repoInit(path)
       this.repoSync()
+    }).catch(e => {
+      console.log(`Google repo error: ${e}`)
+      throw e
     })
   }
 
