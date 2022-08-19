@@ -1,8 +1,8 @@
 import { execSync } from "child_process"
-import { VaultService, VaultServiceImpl } from "../vault/vault-service"
+import { VaultService } from "../vault/vault-service"
 import fs from "fs"
 import os from 'os'
-import { ensureString } from "../utils/ensures"
+import _ from 'lodash'
 
 export class GoogleRepoSSHId {
   constructor(public readonly vaultKeyPrefix: string, public sshHost: string) { }
@@ -15,27 +15,37 @@ class GoogleRepoConfig {
 export class GoogleRepoUtils {
   constructor(private vaultService: VaultService) { }
 
-  downloadRepo(path: string, sshIds: GoogleRepoSSHId[]): Promise<void> {
-
-    return Promise.all(sshIds.map(sshId => {
-      return Promise.all(["user", "key"].map(suffix => { return this.vaultService.getSecret(`csp/common-build/${sshId.vaultKeyPrefix}-${suffix}`) })).then(([sshUser, sshKey]) => {
-        return new GoogleRepoConfig(sshId.vaultKeyPrefix, sshId.sshHost, sshUser, sshKey)
-      })
+  downloadRepo(path: string, sshHosts: string[]): Promise<void> {
+    console.log(`Processing google-repo on ${path}: ${sshHosts.join(", ")}`)
+    return Promise.all(sshHosts.map(host => {
+      const parts = host.split(".")
+      const id = _.first(parts)
+      if (id) {
+        return Promise.all(["user", "key"].map(suffix => { return this.vaultService.getSecret(`csp/common-build/${id}-${suffix}`) })).then(([sshUser, sshKey]) => {
+          return new GoogleRepoConfig(id, host, sshUser, sshKey)
+        })
+      } else {
+        return Promise.resolve(undefined)
+      }
     })).then(configs => {
+      console.dir(configs, { depth: null })
       const sshConfigDir = `${os.homedir()}/.ssh`
       if (!fs.existsSync(sshConfigDir)) {
         fs.mkdirSync(sshConfigDir, { recursive: true })
       }
       configs.forEach(config => {
-        const keyFileName = `${sshConfigDir}/id_rsa_${config.id}`
-        const ssh_config = `
+        if (config) {
+          const keyFileName = `${sshConfigDir}/id_rsa_${config.id}`
+          const ssh_config = `
 Host ${config.host}
 User ${config.sshUser}
 IdentityFile${keyFileName}
 
 `
-        fs.writeFileSync(keyFileName, config.sshKey + "\n", { mode: 0o600 })
-        fs.appendFileSync(`${sshConfigDir}/config`, ssh_config, { mode: 0o600 })
+          console.log("Writing SSH config: " + ssh_config)
+          fs.writeFileSync(keyFileName, config.sshKey + "\n", { mode: 0o600 })
+          fs.appendFileSync(`${sshConfigDir}/config`, ssh_config, { mode: 0o600 })
+        }
       })
       this.repoInit(path)
       this.repoSync()
