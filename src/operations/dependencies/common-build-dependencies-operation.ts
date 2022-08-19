@@ -28,7 +28,7 @@ export class CommonBuildDependenciesOperations implements Operations.Operation {
             return Promise.all(artifactsConfig.items.map(artifact => {
                 return Promise.all(artifact.files.map(file => {
                     const ref = new ArtifactRef(artifact.path, artifact.remote || artifactsConfig.remote, artifact.repository || artifactsConfig.repository, `${artifact.revision}/${file.name}`)
-                    const pathSegments = [artifactsConfig.toDir, artifact.toDir].filter(s => { return s })
+                    const pathSegments = [artifactsConfig.toDir?.trim(), artifact.toDir?.trim(), file.toDir?.trim()].filter(s => { return s })
                     const tarGzSuffix = "tar.gz"
 
                     if (file.name.endsWith(tarGzSuffix)) {

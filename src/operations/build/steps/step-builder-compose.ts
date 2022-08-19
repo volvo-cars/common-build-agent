@@ -20,7 +20,7 @@ export class StepBuilderCompose implements StepBuilder.Builder {
             return acc
         }, { version: '3', services: new Map() })
         let snippets: string[] = [`
-echo docker-compose up...
+echo docker compose up...
         `]
         const dockerCompose = Yaml.stringify(dockerComposeFileObject)
         snippets.push(`
@@ -44,7 +44,7 @@ on_error${step}() {
 trap 'on_error${step} $? $LINENO' ERR
     `)
         snippets.push(`echo "$dockerComposeYml${step}" | docker compose -f - -p cb-${id.session} up --detach`)
-        snippets.push("echo Containers started:")
+        snippets.push("echo containers started:")
         snippets.push(`echo "$dockerComposeYml${step}" | docker compose -f - -p cb-${id.session} ps`)
         commands.forEach(command => {
             const getSingleNodeId = (): string => {

@@ -7,11 +7,16 @@ export namespace DependenciesConfig {
 
 
     export class ArtfifactFile {
+        @Expose()
         name: string
+        @Expose()
         rename: string | undefined
-        constructor(name: string, rename: string | undefined) {
+        @Expose()
+        toDir: string | undefined
+        constructor(name: string, rename: string | undefined, toDir: string | undefined) {
             this.name = name
             this.rename = rename // Renames this file/directory when saving.
+            this.toDir = toDir
         }
     }
 
