@@ -21,7 +21,7 @@ export class GoogleRepoUtils {
       const parts = host.split(".")
       const id = _.first(parts)
       if (id) {
-        return Promise.all(["user", "key"].map(suffix => {
+        return Promise.all(["user", "ssh-key"].map(suffix => {
           const secretKey = `csp/common-build/${id}-${suffix}`
           console.log("Resolving secret: " + secretKey)
           return this.vaultService.getSecret(secretKey)
