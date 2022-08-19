@@ -36,7 +36,6 @@ export class GoogleRepoUtils {
         return Promise.resolve(undefined)
       }
     })).then(configs => {
-      console.dir(configs, { depth: null })
       const sshConfigDir = `${os.homedir()}/.ssh`
       if (!fs.existsSync(sshConfigDir)) {
         fs.mkdirSync(sshConfigDir, { recursive: true })
