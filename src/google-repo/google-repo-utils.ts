@@ -2,6 +2,7 @@ import { execSync } from "child_process"
 import fs from "fs"
 import _ from 'lodash'
 import os from 'os'
+import { DefaulXmlExtractor } from "../operations/dependencies/default-xml-extractor"
 import { VaultService } from "../vault/vault-service"
 
 export class GoogleRepoSSHId {
@@ -19,8 +20,23 @@ export class GoogleRepoUtils {
     "csp-gerrit-ssh": "csp-gerrit"
   }
 
-  downloadRepo(path: string, sshHosts: string[]): Promise<void> {
-    console.log(`Processing google-repo on ${path}: ${sshHosts.join(", ")}`)
+  downloadRepo(path: string, extracts: DefaulXmlExtractor.HostExtract[]): Promise<void> {
+    console.log(`Processing google-repo on ${path}: ${extracts.join(", ")}`)
+
+    const extractHosts = (protocol: DefaulXmlExtractor.Protocol): string[] => {
+      return extracts.filter(e => { return e.protocol === protocol }).map(e => { return e.host })
+    }
+
+    return Promise.all([this.preparaSSHHosts(extractHosts(DefaulXmlExtractor.Protocol.ssh)), this.preparaHTTPSHosts(extractHosts(DefaulXmlExtractor.Protocol.https))]).then(() => {
+      this.repoInit(path)
+      this.repoSync()
+    }).catch(e => {
+      console.log(`Google repo error: ${e}`)
+      throw e
+    })
+  }
+
+  private preparaSSHHosts(sshHosts: string[]): Promise<void> {
     return Promise.all(sshHosts.map(host => {
       const parts = host.split(".")
       const id = _.first(parts)
@@ -47,18 +63,31 @@ export class GoogleRepoUtils {
 Host ${config.host}
 User ${config.sshUser}
 IdentityFile ${keyFileName}
-
 `
           fs.writeFileSync(keyFileName, config.sshKey + "\n", { mode: 0o600 })
           fs.appendFileSync(`${sshConfigDir}/config`, ssh_config, { mode: 0o600 })
         }
       })
-      this.repoInit(path)
-      this.repoSync()
     }).catch(e => {
-      console.log(`Google repo error: ${e}`)
-      throw e
+      console.log(`Google repo ssh-error: ${e}`)
+      return Promise.reject(e)
     })
+  }
+  private preparaHTTPSHosts(httpsHosts: string[]): Promise<void> {
+    return Promise.all(_.uniq(httpsHosts).map(host => {
+      return this.vaultService.getSecret(`git-http-${host}`).then(secret => {
+        return `https://${secret}@${host}`
+      })
+    })).then((configLines) => {
+      const configDir = `${os.homedir()}`
+      fs.appendFileSync(`${configDir}/.git-credentials`, configLines.join("\n"), { mode: 0o700 })
+
+    })
+      .catch((e) => {
+        console.log(`Google repo https-error: ${e}`)
+        return Promise.reject(e)
+      })
+
   }
 
   repoInit(path: string) {
