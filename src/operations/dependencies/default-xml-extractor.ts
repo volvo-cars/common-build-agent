@@ -14,7 +14,7 @@ export namespace DefaulXmlExtractor {
     }
 
     export class Extractor {
-        private static URL_MATCHER = /^\s*(ssh|https):\/\/(.*)$/i
+        private static URL_MATCHER = /^\s*(ssh|https):\/\/([^\/]+)/i
         constructor(private readonly defaultXml: string) { }
         extract(): HostExtract[] {
             const $ = cheerio.load(this.defaultXml, {
