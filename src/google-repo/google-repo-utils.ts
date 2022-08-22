@@ -80,7 +80,7 @@ IdentityFile ${keyFileName}
       })
     })).then((configLines) => {
       const configDir = `${os.homedir()}`
-      fs.appendFileSync(`${configDir}/.git-credentials`, configLines.join("\n"), { mode: 0o700 })
+      fs.appendFileSync(`${configDir}/.git-credentials`, `${configLines.join("\n")}\n`, { mode: 0o700 })
 
     })
       .catch((e) => {
