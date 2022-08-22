@@ -75,7 +75,7 @@ IdentityFile ${keyFileName}
   }
   private preparaHTTPSHosts(httpsHosts: string[]): Promise<void> {
     return Promise.all(_.uniq(httpsHosts).map(host => {
-      return this.vaultService.getSecret(`git-http-${host}`).then(secret => {
+      return this.vaultService.getSecret(`csp/common-build/git-https-${host}`).then(secret => {
         return `https://${secret}@${host}`
       })
     })).then((configLines) => {
