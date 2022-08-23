@@ -1,4 +1,4 @@
 images:
-  remote: artcsp-docker
+  remote: artcsp-docker.ara-artifactory.volvocars.biz
   items:
     - name: vcc/common-build-agent

@@ -2,14 +2,13 @@ import _ from "lodash";
 import Yaml from 'yaml';
 import { ImageVersionUtil } from "../../../domain-model/image-version-util";
 import { BuildConfig } from "../../../domain-model/system-config/build-config";
-import { ServiceConfig } from "../../../domain-model/system-config/service-config";
 import { Operations } from "../../operation";
 import { StepBuilder } from "./step-builder";
 
 export class StepBuilderCompose implements StepBuilder.Builder {
 
 
-    constructor(private readonly config: BuildConfig.BuildCompose.Step, private readonly registries: ServiceConfig.DockerRegistryStorage[]) { }
+    constructor(private readonly config: BuildConfig.BuildCompose.Step) { }
 
     generateBuild(step: number, id: Operations.Id, visitor: StepBuilder.Visitor): void {
 
@@ -69,9 +68,9 @@ trap 'on_error${step} $? $LINENO' ERR
         const commandNode = node.entryPoint ? {
             command: node.entryPoint
         } : (commands.find(c => { return c.node === nodeId || !c.node }) ? { command: "/bin/bash -c 'trap exit INT TERM; while true; do sleep 1 & wait; done;'" } : {})
-        const imageVersion = ImageVersionUtil.ImageVersion.parse(node.image, this.registries)
+        const imageVersion = ImageVersionUtil.ImageVersion.parse(node.image)
         let [image, maybeVersion] = node.image.split(":")
-        let realImageVersion = imageVersion ? imageVersion.asRegistryHostString() : `${image}:${maybeVersion || id.session}`
+        let realImageVersion = imageVersion ? imageVersion.asString() : `${image}:${maybeVersion || id.session}`
         return _.merge(
             {
                 image: realImageVersion,

@@ -16,12 +16,9 @@ import { ServiceConfig } from "../../../../src/domain-model/system-config/servic
 describe("Phase script builder", () => {
     it("Single node", async () => {
         const steps: BuildConfig.BuildStep[] = []
-        steps.push(new BuildConfig.BuildDockerBuild.Step(
-            StepBuilder.imageName("dev"), "docker/Dockerfile", "dev", undefined
-        ))
         steps.push(new BuildConfig.BuildCompose.Step(
             new Map([
-                ["dev", new BuildConfig.BuildCompose.Node(StepBuilder.imageName("dev"), ["redis"], [], undefined, undefined)],
+                ["dev", new BuildConfig.BuildCompose.Node("artcsp-docker.ara-artifactory.volvocars.biz/vcc/common-build-dev:0.5.0", ["redis"], [], undefined, undefined)],
                 ["redis", new BuildConfig.BuildCompose.Node("redis:6.2-alpine", [], [6379], undefined, undefined)]
             ]),
             [
@@ -29,7 +26,7 @@ describe("Phase script builder", () => {
             ]
         ))
         steps.push(new BuildConfig.BuildDockerBuild.Step(
-            StepBuilder.imageName("agent"), "docker/Dockerfile", "agent", undefined
+            StepBuilder.imageName("agent"), "docker/Dockerfile", undefined, undefined
         ))
         /* steps.push(new BuildConfig.BuildCompose.Step(
              new Map([
@@ -53,14 +50,13 @@ describe("Phase script builder", () => {
         const id = new Operations.Id(sessionId)
         const fileReader = new FileReader()
         const secretsWriter = new SecretsWriterImpl()
-        const registries = [new ServiceConfig.DockerRegistryStorage("artcsp-docker", "artcsp-docker.ara-artifactory.volvocars.biz", "csp/common-build/artcsp-docker-auth", "")]
-        const operation = new BuildOperation(config, [StepCommand.Phase.BUILD, StepCommand.Phase.POST], secretsWriter, fileReader, registries, undefined)
+        const operation = new BuildOperation(config, [StepCommand.Phase.BUILD, StepCommand.Phase.POST], secretsWriter, fileReader, undefined)
 
         const commands: string[] = []
         const receiver = (bash: string) => {
             commands.push(bash)
         }
-        const vaultService = new MockVaultService({ "csp/common-build/artcsp-docker-auth": Buffer.from("nlindbe2:DUmmy", "ascii").toString("base64") })
+        const vaultService = new MockVaultService({ "csp/common-build/some-secret": "USER:DUMMY" })
         await operation.execute(id, receiver, vaultService)
         const script = commands.join("\n")
         await secretsWriter.writeSecrets()

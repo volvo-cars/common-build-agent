@@ -1,11 +1,9 @@
 import 'reflect-metadata'
 import YAML from "yaml"
 import yargs from "yargs"
-import { createConfig } from './config/config-factory'
 import { BuildConfig } from './domain-model/system-config/build-config'
 import { Codec } from './domain-model/system-config/codec'
 import { PublicationConfig } from './domain-model/system-config/publication-config'
-import { ServiceConfig } from './domain-model/system-config/service-config'
 import { BuildOperation } from './operations/build/build-operation'
 import { SecretsWriterImpl } from './operations/build/secrets-writer'
 import { StepCommand } from './operations/build/steps/step-command'
@@ -15,16 +13,12 @@ import { MultiOperation, Operations } from './operations/operation'
 import { PublishArtifactsOperation } from './operations/publish/publish-artifacts-operation'
 import { FileReader } from './utils/file-reader'
 import { Waiter } from "./utils/waiter"
-import { VaultServiceImpl } from './vault/vault-service'
+import { VaultOptions, VaultServiceImpl } from './vault/vault-service'
 
 const scriptTimeOut = 1 * 24 * 60 * 60 * 1000
 
 const createUid = () => {
   return `${new Date().getTime()}_${Math.floor(Math.random() * 100000)}`
-}
-
-const getConfig = (configFile: string): ServiceConfig.Services => {
-  return createConfig(configFile)
 }
 
 const execute = (opCreate: Promise<Operations.Operation | string>, id: Operations.Id, finalizer?: () => Promise<void>): Promise<void> => {
@@ -38,17 +32,20 @@ const execute = (opCreate: Promise<Operations.Operation | string>, id: Operation
       if (!vaultToken) {
         throw new Error("Env VAULT_TOKEN is missing")
       }
-      const vaultService = new VaultServiceImpl({
-        endpoint: "https://winterfell.csp-dev.net",
-        token: vaultToken,
-        apiVersion: "v1"
-      })
+      const vaultService = new VaultServiceImpl(new VaultOptions(
+        "v1",
+        "https://winterfell.csp-dev.net",
+        vaultToken,
+      ))
       return op.execute(id, receiver, vaultService).then(() => {
         if (finalizer) {
           return finalizer()
         } else {
           return Promise.resolve()
         }
+      }).catch(e => {
+        console.log(`Error in command execution: ${e}`)
+        return Promise.reject(e)
       })
     } else {
       console.log(op)
@@ -66,13 +63,11 @@ yargs
     (yargs) => {
       return yargs
         .option("session", { type: "string", demandOption: true })
-        .option("config", { type: "string", demandOption: true })
-
     },
     (args) => {
       const id = new Operations.Id(args.session)
       const fileReader = new FileReader()
-      execute(Promise.resolve(new MultiOperation([new GoogleRepoOperation(fileReader), new CommonBuildDependenciesOperations(fileReader, <ServiceConfig.ArtifactoryStorage[]>getConfig(args.config).storages.filter(f => { return f instanceof ServiceConfig.ArtifactoryStorage }))])), id)
+      execute(Promise.resolve(new MultiOperation([new GoogleRepoOperation(fileReader), new CommonBuildDependenciesOperations(fileReader)])), id)
     }
   )
   .command(
@@ -84,7 +79,6 @@ yargs
           default: false,
         })
         .option("session", { type: "string", demandOption: true })
-        .option("config", { type: "string", demandOption: true })
     },
     (args) => {
       const fileReader = new FileReader()
@@ -94,7 +88,7 @@ yargs
           const publicationContent = content.toString()
           const publicationConfig = Codec.toInstance(YAML.parse(publicationContent), PublicationConfig.Config)
           if (publicationConfig.artifacts) {
-            return new PublishArtifactsOperation(publicationConfig.artifacts, <ServiceConfig.ArtifactoryStorage[]>getConfig(args.config).storages.filter(f => { return f instanceof ServiceConfig.ArtifactoryStorage }))
+            return new PublishArtifactsOperation(publicationConfig.artifacts)
           } else {
             return `Missing artifacts section in ${PublicationConfig.FILE_PATH}.`
           }
@@ -111,7 +105,6 @@ yargs
       return yargs
         .option("phase", { type: "array", choices: ["pre", "build", "post"] })
         .option("toolImage", { type: "string", demandOption: true })
-        .option("config", { type: "string", demandOption: true })
     }, (args) => {
       const fileReader = new FileReader()
       const id = new Operations.Id(createUid())
@@ -120,9 +113,7 @@ yargs
         if (content) {
           const buildContent = content.toString()
           const buildConfig = Codec.toInstance(YAML.parse(buildContent), BuildConfig.Config)
-          const config = getConfig(args.config)
-          const dockerRegistries = <ServiceConfig.DockerRegistryStorage[]>config.storages.filter(s => { return s instanceof ServiceConfig.DockerRegistryStorage })
-          return new BuildOperation(buildConfig, <StepCommand.Phase[]>args.phase || [], secretsWriter, fileReader, dockerRegistries, args.toolImage)
+          return new BuildOperation(buildConfig, <StepCommand.Phase[]>args.phase || [], secretsWriter, fileReader, args.toolImage)
         } else {
           return `No Common-Build. No ${BuildConfig.FILE_PATH} file found. `
         }

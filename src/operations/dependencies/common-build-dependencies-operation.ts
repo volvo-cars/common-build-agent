@@ -1,16 +1,15 @@
+import fs from 'fs'
+import { PassThrough } from "stream"
+import Yaml from 'yaml'
 import { Codec } from "../../domain-model/system-config/codec"
 import { DependenciesConfig } from "../../domain-model/system-config/dependencies-config"
 import { FileReader } from "../../utils/file-reader"
+import { TarUtils } from "../../utils/tar-utils"
 import { VaultService } from "../../vault/vault-service"
 import { Operations } from "../operation"
-import Yaml from 'yaml'
-import { ServiceConfig } from "../../domain-model/system-config/service-config"
 import { ArtifactoryService, ArtifactRef } from "../publish/artifactory-service"
-import { PassThrough, Writable } from "stream"
-import { TarUtils } from "../../utils/tar-utils"
-import fs from 'fs'
 export class CommonBuildDependenciesOperations implements Operations.Operation {
-    constructor(private fileReader: FileReader, private storages: ServiceConfig.ArtifactoryStorage[]) { }
+    constructor(private fileReader: FileReader) { }
     execute(id: Operations.Id, receiver: Operations.OutputReceiver, vaultService: VaultService): Promise<void> {
         return this.fileReader.getFile(DependenciesConfig.FILE_PATH).then(config => {
             if (config) {
@@ -24,7 +23,7 @@ export class CommonBuildDependenciesOperations implements Operations.Operation {
         console.log(`Executing download dependencies...`)
         const artifactsConfig = config.artifacts
         if (artifactsConfig) {
-            const artifactoryService = new ArtifactoryService(this.storages, vaultService)
+            const artifactoryService = new ArtifactoryService(vaultService)
             return Promise.all(artifactsConfig.items.map(artifact => {
                 return Promise.all(artifact.files.map(file => {
                     const ref = new ArtifactRef(artifact.path, artifact.remote || artifactsConfig.remote, artifact.repository || artifactsConfig.repository, `${artifact.revision}/${file.name}`)

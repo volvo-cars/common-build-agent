@@ -15,73 +15,43 @@ export namespace ServiceConfig {
         constructor(id: string) {
             super(id)
         }
-    }
-
-
-    export class GerritCynosure {
-        @Expose()
-        host: string
-        constructor(host: string) {
-            this.host = host
-        }
-    }
-
-    export class GerritSSH {
-        @Expose()
-        user: string
-        @Expose()
-        key: string
-        @Expose()
-        host: string
-        @Expose()
-        port: number | undefined
-        constructor(user: string, key: string, host: string, port: number | undefined) {
-            this.user = user
-            this.key = key
-            this.host = host
-            this.port = port
-        }
-    }
-
-    export class GerritHttp {
-        @Expose()
-        user: string
-        @Expose()
-        password: string
-        @Expose()
-        host: string
-        @Expose()
-        protocol: string | undefined
-        @Expose()
-        port: number | undefined
-        constructor(user: string, password: string, host: string, protocol: string | undefined, port: number | undefined) {
-            this.user = user
-            this.password = password
-            this.host = host
-            this.protocol = protocol
-            this.port = port
-        }
+        abstract toString(): string
     }
 
     export class GerritSourceService extends SourceService {
 
         @Expose()
-        @Type(() => GerritSSH)
-        stream: GerritSSH
+        ssh: string
 
         @Expose()
-        @Type(() => GerritHttp)
-        api: GerritHttp
+        https: string
 
         @Expose()
-        @Type(() => GerritCynosure)
-        cynosure: GerritCynosure | undefined
-        constructor(id: string, stream: GerritSSH, api: GerritHttp, cynosure: GerritCynosure | undefined) {
+        cynosure: string | undefined
+        constructor(id: string, ssh: string, https: string, cynosure: string | undefined) {
             super(id)
-            this.stream = stream
-            this.api = api
+            this.ssh = ssh
+            this.https = https
             this.cynosure = cynosure
         }
+        toString(): string {
+            return `GerritSource[${this.id}] ssh=${this.ssh} https=${this.https} cynosure=${this.cynosure || "Na"}`
+        }
+    }
+
+    export class GitlabSourceService extends SourceService {
+
+        @Expose()
+        https: string
+
+        constructor(id: string, https: string) {
+            super(id)
+            this.https = https
+        }
+        toString(): string {
+            return `GitlabSource[${this.id}] https=${this.https}`
+        }
+
     }
 
     export abstract class StorageService extends Service {
@@ -124,6 +94,7 @@ export namespace ServiceConfig {
                 property: 'type',
                 subTypes: [
                     { value: ServiceConfig.GerritSourceService, name: 'gerrit' },
+                    { value: ServiceConfig.GitlabSourceService, name: 'gitlab' },
                 ],
             }
         })
