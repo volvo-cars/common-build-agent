@@ -14,11 +14,22 @@ export class RepositorySource {
     toString(): string {
         return `source:${this.id}/${this.path}`
     }
+    asString(): string {
+        return `${this.id}/${this.path}`
+    }
     serialize(): string {
         return `${this.id}:${this.path}`
     }
     static createFromObject(object: { id: string, path: string }): RepositorySource {
         return new RepositorySource(object.id, object.path)
+    }
+    static createFromString(str: string): RepositorySource {
+        const [id, ...rest] = str.split("/")
+        if (id && rest && rest.length) {
+            return new RepositorySource(id, rest.join("/"))
+        } else {
+            throw new Error(`Could not parse ${str} to RepositorySource`)
+        }
     }
     static deserialize(serialized: string): RepositorySource {
         const [id, path] = serialized.split(":")

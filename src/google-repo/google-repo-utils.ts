@@ -86,8 +86,10 @@ IdentityFile ${keyFileName}
     )
   }
   repoSync(manifest?: string) {
+    const cpuCount = os.cpus().length
+    const cpuUsage = Math.ceil(cpuCount / 2)
     return execSync(
-      `GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" repo sync`, { stdio: 'inherit' }
+      `GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" repo sync --no-manifest-update --no-tags --no-repo-verify -c -j ${cpuUsage}`, { stdio: 'inherit' }
     )
   }
 }

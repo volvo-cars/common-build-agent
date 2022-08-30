@@ -10,7 +10,7 @@ export namespace DefaulXmlExtractor {
     export class HostExtract {
         constructor(public readonly name: string, public readonly host: string, public readonly protocol: Protocol, public readonly path: string | undefined) { }
         toString(): string {
-            return `${this.protocol}://${this.host}`
+            return `HostExtract:${this.name}=${this.protocol}://${this.host} (${this.path || "N/A"})`
         }
     }
 

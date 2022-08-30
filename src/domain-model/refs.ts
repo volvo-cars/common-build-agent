@@ -12,6 +12,7 @@ export namespace Refs {
             return `${this.type}:${this.name}`
         }
         abstract originRef(): string
+
     }
 
     export class BranchRef extends Ref {
@@ -48,7 +49,7 @@ export namespace Refs {
 
     }
     export class ShaRef extends Ref {
-        static regExp = /[0-9a-f]{40}/i
+        static regExp = /^[0-9a-f]{40}$/i
         private constructor(public readonly sha: string) {
             super(Type.SHA, sha)
 

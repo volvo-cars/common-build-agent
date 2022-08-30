@@ -2,17 +2,10 @@ import { Exclude, Expose, Type } from "class-transformer"
 import { DomainFiles } from "./domain-files";
 
 
-/**
- * Interpolation {env|secret:x} will interpolate
- */
-
 export namespace BuildConfig {
 
     @Exclude()
-    export abstract class BuildStep {
-        @Expose()
-        protected readonly type: string = "";
-    }
+    export abstract class BuildStep { }
 
     export namespace BuildNative {
         export class Step extends BuildStep {
@@ -63,11 +56,14 @@ export namespace BuildConfig {
 
             @Expose()
             public node?: string
-            constructor(cmd: string, node?: string) { // Only required when 1+ nodes exist
+            // Only required when 1+ nodes exist
+
+            constructor(cmd: string, node: string | undefined) {
                 this.node = node
                 this.cmd = cmd
             }
         }
+
 
         export class Step extends BuildStep {
 
@@ -79,10 +75,17 @@ export namespace BuildConfig {
             @Type(() => NodeCommand)
             public commands: NodeCommand[]
 
-            constructor(nodes: Map<string, Node>, commands: NodeCommand[]) {
+            @Expose()
+            @Type(() => String)
+            public secrets: Map<string, string> = new Map<string, string>() // Bug in transform. Can't define Map<,string,string>|undefined
+
+            constructor(nodes: Map<string, Node>, commands: NodeCommand[], secrets?: Map<string, string>) {
                 super()
                 this.nodes = nodes
                 this.commands = commands
+                if (secrets) {
+                    this.secrets = secrets
+                }
             }
         };
     }
@@ -134,19 +137,6 @@ export namespace BuildConfig {
         };
     }
 
-    export class Optimizer {
-
-        @Expose()
-        public label: string
-
-        @Expose()
-        public values: Map<string, string | null>
-        constructor(label: string, values: Map<string, string | null>) {
-            this.label = label
-            this.values = values
-        }
-    };
-
     export class Build {
         @Type(() => BuildStep, {
             discriminator: {
@@ -164,13 +154,10 @@ export namespace BuildConfig {
         @Type(() => BuildStep)
         public steps: BuildStep[]
 
-        @Expose()
-        @Type(() => Optimizer)
-        public optimizers: Optimizer[] | undefined
-        constructor(steps: BuildStep[], optimizers: Optimizer[] | undefined) {
+        constructor(steps: BuildStep[]) {
             this.steps = steps
-            this.optimizers = optimizers
         }
+
     }
 
     export class Config {

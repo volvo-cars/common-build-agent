@@ -59,4 +59,7 @@ export class Version {
             return this.segments.length - other.segments.length
         }
     }
+    toString(): string {
+        return `version:${this.asString()}`
+    }
 }

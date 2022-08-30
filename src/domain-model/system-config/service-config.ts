@@ -54,36 +54,27 @@ export namespace ServiceConfig {
 
     }
 
-    export abstract class StorageService extends Service {
-        constructor(id: string) {
-            super(id)
-        }
-    }
-
-    export class ArtifactoryStorage extends StorageService {
+    export abstract class DockerRegistry {
         @Expose()
         host: string
-        @Expose()
-        token: string
-        constructor(id: string, host: string, token: string) {
-            super(id)
+        constructor(host: string) {
             this.host = host
-            this.token = token
         }
     }
 
-    export class DockerRegistryStorage extends StorageService {
+    export class ArtifactoryDockerRegistry extends DockerRegistry {
+
         @Expose()
-        host: string
-        @Expose()
-        token: string
+        artifactoryHost: string
         @Expose()
         registryRepository: string //internal artifactory repository!
-        constructor(id: string, host: string, token: string, registryRepository: string) {
-            super(id)
-            this.host = host
-            this.token = token
+        constructor(host: string, artifactoryHost: string, registryRepository: string) {
+            super(host)
+            this.artifactoryHost = artifactoryHost
             this.registryRepository = registryRepository
+        }
+        toString(): string {
+            return `ArtifactoryDockerRegistry: ${this.host} => ${this.artifactoryHost}/${this.registryRepository}`
         }
     }
 
@@ -99,20 +90,19 @@ export namespace ServiceConfig {
             }
         })
         sources: SourceService[]
+
         @Expose()
-        @Type(() => SourceService, {
+        @Type(() => DockerRegistry, {
             discriminator: {
                 property: 'type',
                 subTypes: [
-                    { value: ServiceConfig.DockerRegistryStorage, name: 'docker' },
-                    { value: ServiceConfig.ArtifactoryStorage, name: 'artifactory' }
+                    { value: ServiceConfig.ArtifactoryDockerRegistry, name: 'artifactory' }
                 ],
             }
-        })
-        storages: StorageService[]
-        constructor(sources: SourceService[], storages: StorageService[]) {
+        }) dockerRegistries: DockerRegistry[]
+        constructor(sources: SourceService[], dockerRegistries: DockerRegistry[]) {
             this.sources = sources
-            this.storages = storages
+            this.dockerRegistries = dockerRegistries
         }
 
     }

@@ -30,6 +30,7 @@ export namespace DependencyRef {
             return [this.constructor.name, this.fields()].flat().join(delimiter)
         }
         protected abstract fields(): string[]
+        abstract toString(): string
     }
 
     export class ArtifactRef extends Ref {
@@ -49,6 +50,9 @@ export namespace DependencyRef {
         static create(fields: string[]): ArtifactRef {
             return new ArtifactRef(fields[0], fields[1], fields[2])
         }
+        toString(): string {
+            return `Artifact:${this.remote}/${this.repository}/${this.path}`
+        }
 
     }
 
@@ -67,6 +71,10 @@ export namespace DependencyRef {
         static create(fields: string[]): ImageRef {
             return new ImageRef(fields[0], fields[1])
         }
+        toString(): string {
+            return `Image:${this.remote}/${this.repository}`
+        }
+
     }
 
     export class GitRef extends Ref {
@@ -80,6 +88,9 @@ export namespace DependencyRef {
         }
         static create(fields: string[]): GitRef {
             return new GitRef(RepositorySource.deserialize(fields[0]))
+        }
+        toString(): string {
+            return `Git:${this.source.toString()}`
         }
 
     }

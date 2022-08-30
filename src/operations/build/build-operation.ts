@@ -3,13 +3,11 @@ import YAML from 'yaml';
 import { BuildConfig } from "../../domain-model/system-config/build-config";
 import { Codec } from "../../domain-model/system-config/codec";
 import { PublicationConfig } from "../../domain-model/system-config/publication-config";
-import { ServiceConfig } from "../../domain-model/system-config/service-config";
 import { FileReader } from "../../utils/file-reader";
 import { GitUtils } from "../../utils/git-utils";
-import { VaultOptions, VaultService } from "../../vault/vault-service";
-import { VaultUtils } from "../../vault/vault-utils";
+import { VaultService } from "../../vault/vault-service";
 import { Operations } from "../operation";
-import { SecretsWriter } from "./secrets-writer";
+import { Base, Secrets, SecretsWriterImpl } from "./secrets-writer";
 import { StepBuilderVisitor } from "./step-builder-visitor";
 import { StepBuilder } from "./steps/step-builder";
 import { StepBuilderBuild } from "./steps/step-builder-build";
@@ -18,16 +16,17 @@ import { StepBuilderJenkins } from "./steps/step-builder-jenkins";
 import { StepBuilderNative } from "./steps/step-builder-native";
 import { StepCommand } from "./steps/step-command";
 export class BuildOperation extends Operations.Operation {
-    constructor(private config: BuildConfig.Config, private phases: StepCommand.Phase[], private secretsWriter: SecretsWriter, private fileReader: FileReader, private toolImage: undefined | string) {
+    constructor(private config: BuildConfig.Config, private phases: StepCommand.Phase[], private fileReader: FileReader, private secretsPath: Secrets.SecretPaths, private toolImage: string | undefined) {
         super()
     }
 
     async execute(id: Operations.Id, receiver: Operations.OutputReceiver, vaultService: VaultService): Promise<void> {
+        const secretsService = new SecretsWriterImpl(new Base(), this.secretsPath)
         const isJenkinsOnlyBuild = _.every(this.config.build.steps, (s => { return s instanceof BuildConfig.BuildJenkins.Step }))
         const phases: StepCommand.Phase[] = this.phases.length ? this.phases : isJenkinsOnlyBuild ? [StepCommand.Phase.BUILD] : [StepCommand.Phase.PRE, StepCommand.Phase.BUILD, StepCommand.Phase.POST]
         const stepBuilders: StepBuilder.Builder[] = this.config.build.steps.map(step => {
             if (step instanceof BuildConfig.BuildCompose.Step) {
-                return new StepBuilderCompose(step)
+                return new StepBuilderCompose(step, secretsService)
             } else if (step instanceof BuildConfig.BuildNative.Step) {
                 return new StepBuilderNative(step)
             } else if (step instanceof BuildConfig.BuildDockerBuild.Step) {
@@ -56,17 +55,15 @@ export class BuildOperation extends Operations.Operation {
             })
         }
         if (_.includes(phases, StepCommand.Phase.POST)) {
-            await this.addPostCommands(id, visitor, vaultService)
+            await this.addPostCommands(id, visitor, secretsService)
         }
         visitor.addSnippet("# Clean-up operations")
         _.reverse(_.clone(stepBuilders)).forEach((builder, step) => {
             builder.generateTearDown(step, id, visitor)
         })
         visitor.addSnippet("set +e")
-
-
         receiver(visitor.getScript())
-        return Promise.resolve()
+        return secretsService.writeSecrets(vaultService)
     }
 
     private async addPreCommands(id: Operations.Id, visitor: StepBuilder.Visitor): Promise<void> {
@@ -75,7 +72,7 @@ export class BuildOperation extends Operations.Operation {
         return Promise.resolve()
     }
 
-    private async addPostCommands(id: Operations.Id, visitor: StepBuilder.Visitor, vaultService: VaultService): Promise<void> {
+    private async addPostCommands(id: Operations.Id, visitor: StepBuilder.Visitor, secretsService: Secrets.Service): Promise<void> {
         visitor.addSnippet("# Post-commands")
         return Promise.all([GitUtils.getSha(), this.fileReader.getFile(PublicationConfig.FILE_PATH)]).then(([gitSha, publishConfig]) => {
             if (publishConfig) {
@@ -95,16 +92,14 @@ export class BuildOperation extends Operations.Operation {
                         visitor.addSnippet(`# Publishing images (${parsedConfig.images.items?.length || 0}) (remotes = ${Object.keys(publicationsByRemote).join(",")}).`)
                         return Promise.all(Object.keys(publicationsByRemote).map(async remote => {
                             const items = publicationsByRemote[remote]
-                            return vaultService.getSecret(`csp/common-build/https-${remote}`).then(secret => {
-                                const [user, password] = VaultUtils.splitUserSecret(secret)
-                                this.secretsWriter.registerSecret(remote, password)
-                                visitor.addSnippet(`cat ${this.secretsWriter.getSecretPath(remote)} | docker login -u ${user} --password-stdin ${remote}`)
-                                items.forEach(item => {
-                                    const remoteName = `${remote}/${item.name}:${gitSha.sha}`
-                                    visitor.addSnippet(`docker image tag ${item.name}:${id.session} ${remoteName} && docker image push ${remoteName} && docker rmi --force ${remoteName}`)
-                                });
-                                return Promise.resolve()
-                            })
+                            const [remoteUser, remoteSecret] = secretsService.mountAuth(`docker_${remote}`, `csp/common-build/https-${remote}`)
+
+                            visitor.addSnippet(`cat ${remoteSecret.filePath} | docker login -u $(cat ${remoteUser.filePath}) --password-stdin ${remote}`)
+                            items.forEach(item => {
+                                const remoteName = `${remote}/${item.name}:${gitSha.sha}`
+                                visitor.addSnippet(`docker image tag ${item.name}:${id.session} ${remoteName} && docker image push ${remoteName} && docker rmi --force ${remoteName}`)
+                            });
+                            return Promise.resolve()
                         })).then(() => { })
                     } else {
                         return Promise.resolve()

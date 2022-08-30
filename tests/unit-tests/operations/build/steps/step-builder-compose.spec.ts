@@ -10,7 +10,7 @@ describe("step-builder-compose", () => {
             ]),
             [
                 new BuildConfig.BuildCompose.NodeCommand("echo hello2 > test.txt && ls -l", "dev")
-            ]
+            ], new Map()
         )
         //const id = new StepBuildId("sha", new Date().getTime().toString(), 0, "latest")
         //console.log(await new StepBuilderCompose(step).(id, [StepCommand.Phase.PRE, StepCommand.Phase.BUILD, StepCommand.Phase.POST]))

@@ -5,7 +5,7 @@ import { BuildConfig } from './domain-model/system-config/build-config'
 import { Codec } from './domain-model/system-config/codec'
 import { PublicationConfig } from './domain-model/system-config/publication-config'
 import { BuildOperation } from './operations/build/build-operation'
-import { SecretsWriterImpl } from './operations/build/secrets-writer'
+import { Secrets } from './operations/build/secrets-writer'
 import { StepCommand } from './operations/build/steps/step-command'
 import { CommonBuildDependenciesOperations } from './operations/dependencies/common-build-dependencies-operation'
 import { GoogleRepoOperation } from './operations/dependencies/google-repo-operation'
@@ -21,7 +21,7 @@ const createUid = () => {
   return `${new Date().getTime()}_${Math.floor(Math.random() * 100000)}`
 }
 
-const execute = (opCreate: Promise<Operations.Operation | string>, id: Operations.Id, finalizer?: () => Promise<void>): Promise<void> => {
+const execute = (opCreate: Promise<Operations.Operation | string>, id: Operations.Id): Promise<void> => {
   const waiter = Waiter.create(scriptTimeOut)
   return opCreate.then(async op => {
     if (op instanceof Operations.Operation) {
@@ -37,16 +37,11 @@ const execute = (opCreate: Promise<Operations.Operation | string>, id: Operation
         "https://winterfell.csp-dev.net",
         vaultToken,
       ))
-      return op.execute(id, receiver, vaultService).then(() => {
-        if (finalizer) {
-          return finalizer()
-        } else {
-          return Promise.resolve()
-        }
-      }).catch(e => {
-        console.log(`Error in command execution: ${e}`)
-        return Promise.reject(e)
-      })
+      return op.execute(id, receiver, vaultService)
+        .catch(e => {
+          console.log(`Error in command execution: ${e}`)
+          return Promise.reject(e)
+        })
     } else {
       console.log(op)
       return Promise.resolve()
@@ -104,22 +99,26 @@ yargs
     (yargs) => {
       return yargs
         .option("phase", { type: "array", choices: ["pre", "build", "post"] })
-        .option("toolImage", { type: "string", demandOption: true })
+        .option("toolImage", { type: "string", demandOption: true, description: "The complete docker-image:version of the running tool (for self-reference)" })
+        .option("secretsPaths", { type: "string", demandOption: true, description: "Format: external:internal. The path where secrets should be stored on the file system." })
     }, (args) => {
       const fileReader = new FileReader()
       const id = new Operations.Id(createUid())
-      const secretsWriter = new SecretsWriterImpl()
+
       execute(fileReader.getFile(BuildConfig.FILE_PATH).then(content => {
         if (content) {
           const buildContent = content.toString()
           const buildConfig = Codec.toInstance(YAML.parse(buildContent), BuildConfig.Config)
-          return new BuildOperation(buildConfig, <StepCommand.Phase[]>args.phase || [], secretsWriter, fileReader, args.toolImage)
+          const [externalPath, internalPath] = args.secretsPaths.split(":")
+          if (externalPath && internalPath) {
+            return new BuildOperation(buildConfig, <StepCommand.Phase[]>args.phase || [], fileReader, new Secrets.SecretPaths(externalPath, internalPath), args.toolImage)
+          } else {
+            return Promise.reject(new Error(`Bad format for secretsPaths: ${args.secretsPaths}`))
+          }
         } else {
           return `No Common-Build. No ${BuildConfig.FILE_PATH} file found. `
         }
-      }), id, () => {
-        return secretsWriter.writeSecrets()
-      })
+      }), id)
     })
   .demandCommand()
   .help()

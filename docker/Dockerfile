@@ -1,4 +1,4 @@
-FROM artcsp-docker.ara-artifactory.volvocars.biz/vcc/common-build-dev:0.5.0
+FROM artcsp-docker.ara-artifactory.volvocars.biz/vcc/common-build-dev:0.7.0
 
 
 RUN curl https://storage.googleapis.com/git-repo-downloads/repo > /usr/local/bin/repo && chmod a+rx /usr/local/bin/repo
