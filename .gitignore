@@ -4,3 +4,4 @@ tests/coverage/
 .DS_Store
 test.sh
 .cb-secrets
+application.properties

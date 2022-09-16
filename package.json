@@ -1,6 +1,6 @@
 {
-  "name": "ci-common-build-agent",
-  "version": "1.0.0",
+  "name": "common-build-agent",
+  "version": "0.1.0",
   "description": "New repository for CS Agent",
   "main": "index.js",
   "scripts": {
@@ -9,8 +9,12 @@
     "test": "jest --coverage --detectOpenHandles",
     "test:watch": "jest --watch"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Niclas Lindberg <nlindbe2@volvocars.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/volvo-cars/common-build-agent.git"
+  },  
+  "license": "Apache-2.0",
   "dependencies": {
     "@types/cheerio": "^0.22.31",
     "@types/cli-color": "^2.0.2",
