@@ -1,4 +1,4 @@
-toolImage: artcsp-docker.ara-artifactory.volvocars.biz/vcc/common-build-agent:0.11.0
+toolImage: artcsp-docker.ara-artifactory.volvocars.biz/vcc/common-build-agent:0.12.0
 version: 1
 build:
   steps:
