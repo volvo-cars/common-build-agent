@@ -8,7 +8,7 @@
     "build": "rimraf ./build && tsc",
     "test": "jest --coverage --detectOpenHandles",
     "test:watch": "jest --watch",
-    "update-notice": "npx generate-license-file --input package.json --output NOTICE.md --overwrite"
+    "update-notice": "npx @houdiniproject/noticeme -u"
   },
   "author": "Niclas Lindberg <nlindbe2@volvocars.com>",
   "repository": {
