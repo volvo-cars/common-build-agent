@@ -9,16 +9,16 @@ export namespace DependencyRef {
     export type ImageRepository = string
     export type ArtifactPath = string
 
-    const delimiter = "___"
+    const delimiter = "::"
 
     export const deserialize = (serialized: string): Ref => {
         const parts = serialized.split(delimiter)
         const [head, ...tail] = parts
-        if (head === "ArtifactRef") {
+        if (head === ArtifactRef.name) {
             return ArtifactRef.create(tail)
-        } else if (head === "ImageRef") {
+        } else if (head === ImageRef.name) {
             return ImageRef.create(tail)
-        } else if (head === "GitRef") {
+        } else if (head === GitRef.name) {
             return GitRef.create(tail)
         } else {
             throw new Error(`Uknown ref-type: ${head}.`)

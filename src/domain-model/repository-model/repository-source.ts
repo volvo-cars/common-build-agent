@@ -49,7 +49,7 @@ export class RepositorySource {
         }, new Set<string>())
         return Array.from(serializRepositories.values()).map(s => { return RepositorySource.deserialize(s) })
     }
-    isEqual(other: RepositorySource): Boolean {
+    equals(other: RepositorySource): Boolean {
         return this.id === other.id && this.path === other.path
     }
 

@@ -6,7 +6,10 @@ export namespace RepositoryModel {
         major: number,
         minors: MinorContainer[]
         start?: string //Defined by MajorTag
+        branchAndSha(): [string, string] | undefined
     }
+
+
     export class MainBranch {
         @Expose()
         public name: string
@@ -36,6 +39,11 @@ export namespace RepositoryModel {
             this.minors = minors
             this.start = start
         }
+        branchAndSha(): [string, string] | undefined {
+            return [this.main.name, this.main.sha]
+        }
+
+
 
     }
 
@@ -57,6 +65,11 @@ export namespace RepositoryModel {
             this.start = start
             this.branch = branch
         }
+
+        branchAndSha(): [string, string] | undefined {
+            return this.branch ? [`patch-${this.major}`, this.branch] : undefined
+        }
+
     }
 
     export class MinorContainer {

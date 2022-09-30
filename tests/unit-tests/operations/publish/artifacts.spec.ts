@@ -39,13 +39,6 @@ describe("Publication factory", () => {
 
       expect(items[0]).toBeInstanceOf(Artifacts.SingleArtifactItem)
       expect(items[1]).toBeInstanceOf(Artifacts.MultiArtifactItem)
-
-      await Promise.all(items.map(item => {
-
-        const outFile = `build/${item.fullName()}`
-        console.log("Writing", outFile)
-        item.materialize(fs.createWriteStream(outFile))
-      }))
     }
   })
 })

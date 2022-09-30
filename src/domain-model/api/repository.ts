@@ -1,4 +1,6 @@
 import { Expose, Type } from "class-transformer"
+import { BuildLogEvents } from "../buildlog-events/buildlog-events"
+import { Refs } from "../refs"
 import { RepositoryModel } from "../repository-model/repository-model"
 import { RepositorySource } from "../repository-model/repository-source"
 import { Majors } from "../system-config/majors"
@@ -34,14 +36,58 @@ export namespace ApiRepository {
         public major: number
 
         @Expose()
-        public sha?: string
+        public sha: string
 
-        constructor(source: RepositorySource, major: number, sha?: string) {
+        constructor(source: RepositorySource, major: number, sha: string) {
             this.source = source
             this.major = major
             this.sha = sha
         }
 
+    }
+
+    export class UnreleasedCommitsRequest {
+        @Expose()
+        @Type(() => RepositorySource)
+        public source: RepositorySource
+        @Expose()
+        public major: number
+
+        constructor(source: RepositorySource, major: number) {
+            this.source = source
+            this.major = major
+        }
+    }
+
+    export class Commit {
+        @Expose()
+        sha: string
+
+        @Expose()
+        committer: string
+
+        @Expose()
+        timestamp: number
+
+        @Expose()
+        message: string
+
+        constructor(sha: string, committer: string, timestamp: number, message: string) {
+            this.sha = sha
+            this.committer = committer
+            this.timestamp = timestamp
+            this.message = message
+        }
+    }
+
+    export class UnreleasedCommitsResponse {
+        @Expose()
+        @Type(() => Commit)
+        public commits: Commit[]
+
+        constructor(commits: Commit[]) {
+            this.commits = commits
+        }
     }
 
     export class ReleaseResponse extends MessageResponse {
@@ -65,10 +111,9 @@ export namespace ApiRepository {
         @Expose()
         public sha?: string
 
-        constructor(source: RepositorySource, major: number, sha?: string) {
+        constructor(source: RepositorySource, major: number) {
             this.source = source
             this.major = major
-            this.sha = sha
         }
 
     }
@@ -122,10 +167,25 @@ export namespace ApiRepository {
         }
     }
 
+    export class ConfigValuesResponse {
+        @Expose()
+        @Type(() => Majors.Serie)
+        public series: Majors.Serie[]
+
+        @Expose()
+        public availableSystems: string[]
+
+        constructor(series: Majors.Serie[], availableSystems: string[]) {
+            this.series = series
+            this.availableSystems = availableSystems
+        }
+    }
+
     export class MajorSeriesResponse {
         @Expose()
         @Type(() => Majors.Serie)
         public series: Majors.Serie[]
+
         constructor(series: Majors.Serie[]) {
             this.series = series
         }
@@ -150,4 +210,60 @@ export namespace ApiRepository {
         }
     }
 
+    export class BuildConfigRequest {
+        @Expose()
+        @Type(() => RepositorySource)
+        public source: RepositorySource
+
+        constructor(source: RepositorySource) {
+            this.source = source
+        }
+
+    }
+
+    export class BuildSystemInfo {
+        @Expose()
+        public buildSystemUrl: string
+
+        @Expose()
+        public buildSystemName: string
+
+        constructor(buildSystemUrl: string, buildSystemName: string) {
+            this.buildSystemUrl = buildSystemUrl
+            this.buildSystemName = buildSystemName
+        }
+    }
+
+    export class BuildConfigResponse {
+        @Expose()
+        @Type(() => BuildSystemInfo)
+        public buildSystemInfo: BuildSystemInfo
+
+        constructor(buildSystemInfo: BuildSystemInfo) {
+            this.buildSystemInfo = buildSystemInfo
+        }
+    }
+
+    export class BuildLogRequest {
+        @Expose()
+        @Type(() => RepositorySource)
+        public source: RepositorySource
+
+        @Expose()
+        public sha: string
+        constructor(source: RepositorySource, sha: string) {
+            this.source = source
+            this.sha = sha
+        }
+    }
+
+    export class BuildLogResponse {
+        @Expose()
+        @Type(() => BuildLogEvents.BuildLog)
+        public log: BuildLogEvents.BuildLog
+
+        constructor(log: BuildLogEvents.BuildLog) {
+            this.log = log
+        }
+    }
 }

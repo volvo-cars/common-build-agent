@@ -64,9 +64,13 @@ export namespace RepositoryConfig {
         @Type(() => BuildAutomation)
         public buildAutomation: BuildAutomation
 
-        constructor(buildAutomation: BuildAutomation, majorSerie?: MajorSerie) {
-            this.majorSerie = majorSerie
+        @Expose()
+        activeSystem: string | undefined
+
+        constructor(buildAutomation: BuildAutomation, activeSystem: string | undefined, majorSerie?: MajorSerie) {
             this.buildAutomation = buildAutomation
+            this.activeSystem = activeSystem
+            this.majorSerie = majorSerie
         }
     }
 }

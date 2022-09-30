@@ -7,7 +7,7 @@ build:
         dev:
           image: artcsp-docker.ara-artifactory.volvocars.biz/vcc/common-build-dev:0.7.0
       commands:
-        - cmd: npm install && npm run build
+        - cmd: npm install && npm run test && npm run build
     - type: build
       name: vcc/common-build-agent
       file: docker/Dockerfile
