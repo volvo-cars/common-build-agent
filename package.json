@@ -7,8 +7,7 @@
     "start": "nodemon --",
     "build": "rimraf ./build && tsc",
     "test": "jest --coverage --detectOpenHandles",
-    "test:watch": "jest --watch",
-    "update-notice": "npx @houdiniproject/noticeme -u"
+    "test:watch": "jest --watch"
   },
   "author": "Niclas Lindberg <nlindbe2@volvocars.com>",
   "repository": {

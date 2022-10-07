@@ -7924,6 +7924,7 @@ SOFTWARE.
 ------
 
 ** parse5; version 7.1.1 -- https://github.com/inikulin/parse5
+Copyright (c) 2013-2019 Ivan Nikulin (ifaaan@gmail.com, https://github.com/inikulin)
 ** parse5-htmlparser2-tree-adapter; version 7.0.0 -- https://github.com/inikulin/parse5
 Copyright (c) 2013-2019 Ivan Nikulin (ifaaan@gmail.com, https://github.com/inikulin)
 
@@ -8243,6 +8244,36 @@ DEALINGS IN THE SOFTWARE.
 
 This library is a fork of 'better-json-errors' by Kat Marchán, extended and
 distributed under the terms of the MIT license above.
+
+
+------
+
+** fsevents; version 2.3.2 -- https://github.com/fsevents/fsevents
+(c) 2020 by Philipp Dunkel, Ben Noordhuis, Elan Shankar, Paul Miller
+Copyright (c) 2010-2020 by Philipp Dunkel, Ben Noordhuis, Elan Shankar, Paul Miller
+
+MIT License
+-----------
+
+Copyright (C) 2010-2020 by Philipp Dunkel, Ben Noordhuis, Elan Shankar, Paul Miller
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 
 
 ------
@@ -8747,6 +8778,26 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+------
+
+** nan; version 2.16.0 -- https://github.com/nodejs/nan#readme
+Copyright (c) 2018 NAN WG Members
+Copyright (c) 2018 NAN contributors
+Copyright (c) 2021 NAN contributors
+Copyright Joyent, Inc. and other Node contributors
+Copyright (c) 2018 NAN contributors - Rod Vagg <https://github.com/rvagg>
+
+The MIT License (MIT)
+
+Copyright (c) 2018 [NAN contributors](<https://github.com/nodejs/nan#wg-members--collaborators>)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 ------
@@ -9817,6 +9868,7 @@ SOFTWARE.
 ------
 
 ** class-transformer; version 0.5.1 -- https://github.com/typestack/class-transformer#readme
+Copyright (c) 2015-2020 TypeStack
 
 The MIT License
 
@@ -10065,6 +10117,17 @@ Copyright (c) 2013 Nathan Rajlich <nathan@tootallnate.net>
 Copyright 2015 Joyent, Inc.
 Copyright (c) 2012 Mark Cavage
 Copyright (c) 2012, Mark Cavage
+** buildcheck; version 0.0.3 -- https://github.com/mscdex/buildcheck#readme
+Copyright Brian White
+Copyright 2017 - Refael Ackermann
+** cpu-features; version 0.0.4 -- https://github.com/mscdex/cpu-features#readme
+Copyright 2018 IBM.
+Copyright Brian White
+Copyright 2017 Google LLC
+Copyright 2021 Google LLC
+Copyright 2020 Intel Corporation
+Copyright (c) 2010 The Android Open Source Project
+Copyright (c) 1992-2020 The FreeBSD Project. FreeBSD
 ** http-proxy-agent; version 4.0.1 -- https://github.com/TooTallNate/node-http-proxy-agent#readme
 Copyright (c) 2013 Nathan Rajlich <nathan@tootallnate.net>
 ** https-proxy-agent; version 5.0.1 -- https://github.com/TooTallNate/node-https-proxy-agent#readme
