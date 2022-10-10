@@ -16,7 +16,7 @@ export namespace Images {
 
         const images = config.images
         if (images) {
-            return Promise.resolve(images.items.map(image => {
+            return Promise.resolve((images.items || []).map(image => {
                 return new ImageItem(image.remote || images.remote, image.name)
             }))
         } else {

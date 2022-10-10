@@ -1,5 +1,4 @@
 import { DependencyRef } from "./system-config/dependency-ref";
-import { ServiceConfig } from "./system-config/service-config";
 import { Version } from "./version";
 
 export namespace ImageVersionUtil {

@@ -101,12 +101,12 @@ export namespace Artifacts {
     }
 
     export const createArtifactItems = (id: Operations.Id, artifacts: PublicationConfig.Artifacts, baseDir?: string): Promise<Artifacts.ArtifactItem[]> => {
-        return Promise.resolve(artifacts.items.flatMap(artifact => {
+        return Promise.resolve((artifacts.items || []).flatMap(artifact => {
             const items: Artifacts.ArtifactItem[] = artifact.qualifiers.map(qualifier => {
                 let pattern = _.trim(qualifier.src, "/ ")
                 let parts = pattern.split('/')
                 let baseParts = _.takeWhile(parts, part => { return part.indexOf('*') < 0 })
-                let classifier = qualifier.classifier || _.last(baseParts) || "no-name"
+                let name = qualifier.name || qualifier.classifier || _.last(baseParts) || "no-name"
                 if (parts.length == baseParts.length) {
                     const filePath = baseDir ? [baseDir, pattern].join("/") : pattern
                     if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
@@ -114,7 +114,7 @@ export namespace Artifacts {
                             artifact.repository || artifacts.repository,
                             artifact.remote || artifacts.remote,
                             artifact.path,
-                            classifier,
+                            name,
                             pattern
                         )
                         return new Artifacts.SingleArtifactItem(meta, filePath)
@@ -129,7 +129,7 @@ export namespace Artifacts {
                     artifact.repository || artifacts.repository,
                     artifact.remote || artifacts.remote,
                     artifact.path,
-                    classifier,
+                    name,
                     pattern
                 )
                 return new Artifacts.MultiArtifactItem(meta, dirPath, matched.map(m => {

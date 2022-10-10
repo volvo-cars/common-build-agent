@@ -10,9 +10,6 @@ export namespace PublicationConfig {
    * @param classifier if not set it will default to src file- or directory name.
    */
   export class Qualifier {
-    @Expose()
-    src: string
-    @Expose()
     /*
     pattern: 
       no-name: last segment before pattern. If first => "default.tar.gz"
@@ -26,11 +23,24 @@ export namespace PublicationConfig {
 
 
     */
-    classifier?: string
+
+    @Expose()
+    src: string
+
+    /**
+     * @deprecated()
+     * Use property name
+     */
+    @Expose()
+    classifier: string | undefined
+
+    @Expose()
+    name: string | undefined
     constructor(src: string,
-      classifier?: string) {
+      name: string | undefined) {
       this.src = src
-      this.classifier = classifier
+      this.classifier = name
+      this.name = name
     }
   }
   export class Artifact {

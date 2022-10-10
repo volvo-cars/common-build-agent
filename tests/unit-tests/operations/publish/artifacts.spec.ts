@@ -15,6 +15,7 @@ describe("Publication factory", () => {
           [
             new PublicationConfig.Qualifier(
               "dummy1/abc.vbf",
+              undefined
             ),
             new PublicationConfig.Qualifier(
               "dummy1",
