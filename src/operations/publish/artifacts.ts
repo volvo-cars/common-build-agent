@@ -1,15 +1,16 @@
 import fs from 'fs';
 import _ from 'lodash';
 import stream from 'stream';
-import { PublicationConfig } from '../../../src/domain-model/system-config/publication-config';
+import { PublicationConfig } from '../../domain-model/system-config/publication-config';
 import { TarUtils } from "../../utils/tar-utils";
 import { Operations } from '../operation';
 import * as fg from 'fast-glob';
+import { QualifierDecoder } from './qualifier-decoder';
 
 export namespace Artifacts {
 
     export class ArtifactItemMeta {
-        constructor(public readonly repository: string, public readonly remote: string, public readonly path: string, public readonly name: string, public readonly src: string) { }
+        constructor(public readonly repository: string, public readonly remote: string, public readonly path: string) { }
         toString(): string {
             return `artifact-item-meta: ${this.repository}/${this.path}@${this.remote}`
         }
@@ -17,24 +18,20 @@ export namespace Artifacts {
 
     export abstract class ArtifactItem {
         constructor(public readonly meta: ArtifactItemMeta) { }
+        abstract get fileName(): string
+        abstract get description(): string
         abstract materialize(out: stream.Writable): Promise<void>
-        abstract fullName(): string
-        abstract stats(): [string, number][]
-        abstract description(): string
         abstract stream(): stream.Readable
     }
 
     export class SingleArtifactItem extends ArtifactItem {
 
-        constructor(public readonly meta: ArtifactItemMeta, public path: string) {
+        constructor(public readonly meta: ArtifactItemMeta, public path: string, readonly fileName: string) {
             super(meta)
         }
-        override stats(): [string, number][] {
-            const suffix = _.last(this.meta.name.split(".")) || ""
-            return [[suffix, 1]]
-        }
-        override description(): string {
-            return `${this.fullName()} (${this.meta}) (single file) path:${this.path}`
+
+        override get description(): string {
+            return `Single file`
         }
 
         stream(): stream.Readable {
@@ -52,43 +49,16 @@ export namespace Artifacts {
                 instream.pipe(out)
             })
         }
-        override fullName(): string {
-            return this.meta.name
-        }
     }
     export class MultiArtifactItem extends ArtifactItem {
 
 
-        constructor(public readonly meta: ArtifactItemMeta, private basePath: string, private readonly relativePaths: string[]) {
+        constructor(public readonly meta: ArtifactItemMeta, private basePath: string, readonly relativePaths: string[], readonly fileName: string) {
             super(meta)
         }
 
-        override fullName(): string {
-            return this.meta.name + ".tar.gz"
-        }
-
-        override stats(): [string, number][] {
-            const counts = _.countBy(this.relativePaths, (s) => {
-                const lastDot = s.lastIndexOf(".")
-                const lastSlash = s.lastIndexOf("/")
-                if (lastDot > lastSlash) {
-                    return s.substring(lastDot + 1)
-                } else {
-                    return ""
-                }
-            })
-            const countTexts: [string, number][] = []
-            for (let suffix in counts) {
-                let count = counts[suffix]
-                countTexts.push([suffix, count])
-                // Use `key` and `value`
-            }
-            return _.sortBy(countTexts, (([suffix, count]) => {
-                return count * -1
-            }))
-        }
-        override description(): string {
-            return `${this.fullName()} (${this.meta}) (${this.relativePaths.length} files) basePath:${this.basePath}`
+        override get description(): string {
+            return `Multi-file containing ${this.relativePaths.length} files`
         }
 
         stream(): stream.Readable {
@@ -102,41 +72,39 @@ export namespace Artifacts {
 
     export const createArtifactItems = (id: Operations.Id, artifacts: PublicationConfig.Artifacts, baseDir?: string): Promise<Artifacts.ArtifactItem[]> => {
         return Promise.resolve((artifacts.items || []).flatMap(artifact => {
-            const items: Artifacts.ArtifactItem[] = artifact.qualifiers.map(qualifier => {
-                let pattern = _.trim(qualifier.src, "/ ")
-                let parts = pattern.split('/')
-                let baseParts = _.takeWhile(parts, part => { return part.indexOf('*') < 0 })
-                let name = qualifier.name || qualifier.classifier || _.last(baseParts) || "no-name"
-                if (parts.length == baseParts.length) {
-                    const filePath = baseDir ? [baseDir, pattern].join("/") : pattern
-                    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-                        const meta = new Artifacts.ArtifactItemMeta(
-                            artifact.repository || artifacts.repository,
-                            artifact.remote || artifacts.remote,
-                            artifact.path,
-                            name,
-                            pattern
-                        )
-                        return new Artifacts.SingleArtifactItem(meta, filePath)
-                    } else {
-                        pattern = `${pattern}/**/*`
-                    }
+            return artifact.qualifiers.map(qualifier => {
+                const decodedQualifier = QualifierDecoder.decode(qualifier)
+                const matchedFiles = fg.sync(qualifier.src, { onlyFiles: true, cwd: baseDir })
+                if (matchedFiles.length === 0) {
+                    throw new Error(`The src attribute '${qualifier.src}' did not match any files.`)
                 }
-                const matched = fg.sync(pattern, { onlyFiles: true, cwd: baseDir })
-                const basePart = baseParts.join("/")
-                const dirPath = baseDir ? [baseDir, basePart].filter(s => { return s }).join("/") : basePart
                 const meta = new Artifacts.ArtifactItemMeta(
                     artifact.repository || artifacts.repository,
                     artifact.remote || artifacts.remote,
-                    artifact.path,
-                    name,
-                    pattern
+                    artifact.path
                 )
-                return new Artifacts.MultiArtifactItem(meta, dirPath, matched.map(m => {
-                    return m.substring(basePart.length > 0 ? basePart.length + 1 : 0)
-                }).sort())
+
+                if (decodedQualifier.mode === PublicationConfig.QualifierPackMode.ALWAYS) {
+                    const dirPath = [baseDir, decodedQualifier.basePath].filter(s => { return s }).join("/")
+                    const defaultName = (_.last(decodedQualifier.basePath?.split("/")) || "no-name") + ".tar.gz"
+                    const fileName = qualifier.name || defaultName
+                    return new Artifacts.MultiArtifactItem(meta, dirPath, matchedFiles.map(m => {
+                        return m.substring(decodedQualifier.basePath ? decodedQualifier.basePath.length + 1 : 0)
+                    }).sort(), fileName)
+                } else if (decodedQualifier.mode === PublicationConfig.QualifierPackMode.NEVER) {
+                    if (matchedFiles.length === 1) {
+                        const matchedFile = matchedFiles[0]
+                        const defaultFileName = <string>_.last(matchedFile.split("/"))
+                        const fileName = qualifier.name || defaultFileName
+                        return new Artifacts.SingleArtifactItem(meta, [baseDir, matchedFile].filter(s => { return s }).join("/"), fileName)
+
+                    } else {
+                        throw new Error(`Expected a single file match (matched: ${matchedFiles.join(",")})`)
+                    }
+                } else {
+                    throw new Error(`Unexpected pack mode: ${decodedQualifier.mode}`)
+                }
             })
-            return items
         }))
     }
 }

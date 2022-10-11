@@ -5,9 +5,15 @@ import { DomainFiles } from "./domain-files"
 export namespace PublicationConfig {
 
 
+  export enum QualifierPackMode {
+    ALWAYS = "always",
+    AUTO = "auto",
+    NEVER = "never"
+  }
+
   /**
    * @param src local file or directory. If directory it will be compressed with tar.gz
-   * @param classifier if not set it will default to src file- or directory name.
+   * @param name if not set it will default to src file- or directory name.
    */
   export class Qualifier {
     /*
@@ -27,20 +33,16 @@ export namespace PublicationConfig {
     @Expose()
     src: string
 
-    /**
-     * @deprecated()
-     * Use property name
-     */
-    @Expose()
-    classifier: string | undefined
-
     @Expose()
     name: string | undefined
-    constructor(src: string,
-      name: string | undefined) {
+
+    @Expose()
+    pack: QualifierPackMode | undefined
+
+    constructor(src: string, name: string | undefined, pack: QualifierPackMode | undefined) {
       this.src = src
-      this.classifier = name
       this.name = name
+      this.pack = pack
     }
   }
   export class Artifact {
