@@ -4,6 +4,10 @@ The Common Build Agent (CBA) is the part of Common Build that executes on remote
 
 The CBA is packaged as the Docker image `common-build-agent` and requires `docker` to be installed on the build nodes.
 
+## Usage instructions
+
+Usage instructions are available the [instructions document](docs/instructions.md).
+
 ## Build time
 The CBA configures the build according to the current commit's `.common-build/build.yml`.
 The CBA starts the build by calling the **Init command** and execute the generated script. 
