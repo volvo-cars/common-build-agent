@@ -45,28 +45,30 @@ artifacts:
       qualifiers:
         - src: artifacts/lpa-*.tgz # Glob pattern to identify file/files to publish in the artifact
           name?: lpa.tgz # Rename the published file.
-          pack?: [never|always|auto] defaults to auto.
+          pack?: [no|yes|auto] defaults to auto.
 ```
 
 Notes: 
 
 The `qualifier.src` attribute supports [glob-pattern](https://en.wikipedia.org/wiki/Glob_(programming)).
 
-Default behavior:
+Default pack behavior:
 
-If multiple files are matched by the pattern the file will be packed in a `tar.gz` tar-ball and published with the name of the last non-glob name of the pattern.
+| pattern | pattern example | `auto` pack resolution | automatic file name resolution |
+| --- | --- | --- | --- |
+| Pattern not containing the glob symbol `*`. | `artifacts/file.bin` | `no` | `file.bin` |
+| Pattern containing the glob symbol `*` | `some-folder-name/*.bin` | `yes` | `some-folder-name.tar.gz` or `no-name.tar.gz` if at root level.
 
-Ex: `artifacts/*.vbf` will be published under `artifacts.tar.gz`. The file may be overridden with `qualifier.name` attribute.
 
-If a single file is matched without any use of the glob-symbol `*` it will be published with that name or optionally overridden by `qualifier.name` attribute.
+Overriding file name
+The automatically resolved file name can be overridden by the attribute `qualifier.name`. 
 
-Special case:
-If you need match a single file with a dynamic file name like:
+### How to publish a single file with dynamic file name
 
-`artifacts/my-file*.tgz` you need to overwride the default pack-behavior for patterns using glob-symbols:
+If you need match a single file with a dynamic file name like `artifacts/my-file-0.1.2.tgz` you need to overwride the default pack-behavior for patterns using glob-symbols:
 
 ```yml
 - src: artifacts/lpa-*.tgz
   name: lpa.tgz
-  pack: never
+  pack: no
 ```
