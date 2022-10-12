@@ -37,7 +37,7 @@ The [latest released version](https://common-build-staging.csp-dev.net/repo/csp-
 ## publish.yml
 
 ```yml
-artifacts:
+artifacts?:
   remote: remote-host # Ex: ara-artifactory.volvocars.biz
   repository: artifactory-repository # Ex: ARTCSP-CI
   items:
@@ -46,6 +46,10 @@ artifacts:
         - src: artifacts/lpa-*.tgz # Glob pattern to identify file/files to publish in the artifact
           name?: lpa.tgz # Rename the published file.
           pack?: [no|yes|auto] defaults to auto.
+images?:
+  remote: remote-docker-registry # Ex: artcsp-docker.ara-artifactory.volvocars.biz
+  items:
+    - name: docker-image-name # The local daemon docker image name from build step type=build.
 ```
 
 Notes: 
@@ -60,7 +64,8 @@ Default pack behavior:
 | Pattern containing the glob symbol `*` | `some-folder-name/*.bin` | `yes` | `some-folder-name.tar.gz` or `no-name.tar.gz` if at root level.
 
 
-Overriding file name
+### Overriding file name
+
 The automatically resolved file name can be overridden by the attribute `qualifier.name`. 
 
 ### How to publish a single file with dynamic file name
