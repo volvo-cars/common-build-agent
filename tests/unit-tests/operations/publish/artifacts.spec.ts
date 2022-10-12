@@ -68,7 +68,7 @@ describe("Publication factory", () => {
     const items = await processQualifiers(new PublicationConfig.Qualifier(
       "text1.*",
       undefined,
-      PublicationConfig.QualifierPackMode.NEVER
+      PublicationConfig.QualifierPackMode.NO
     ))
     expect(items[0]).toBeInstanceOf(Artifacts.SingleArtifactItem)
     const single1 = <Artifacts.SingleArtifactItem>items[0]
@@ -77,7 +77,7 @@ describe("Publication factory", () => {
     const items2 = await processQualifiers(new PublicationConfig.Qualifier(
       "text1.*",
       "newName",
-      PublicationConfig.QualifierPackMode.NEVER
+      PublicationConfig.QualifierPackMode.NO
     ))
     expect(items2[0]).toBeInstanceOf(Artifacts.SingleArtifactItem)
     const single2 = <Artifacts.SingleArtifactItem>items2[0]
@@ -93,23 +93,23 @@ describe("Publication factory", () => {
     const multi = <Artifacts.MultiArtifactItem>items[0]
     expect(multi.relativePaths).toEqual(["text1.txt"])
   })
-  it("Matching single file in folder with glob with mode NEVER", async () => {
+  it("Matching single file in folder with glob with mode NO", async () => {
     const items = await processQualifiers(new PublicationConfig.Qualifier(
       "folder-a/text-a1.*",
       undefined,
-      PublicationConfig.QualifierPackMode.NEVER
+      PublicationConfig.QualifierPackMode.NO
     ))
     expect(items[0]).toBeInstanceOf(Artifacts.SingleArtifactItem)
     const multi = <Artifacts.SingleArtifactItem>items[0]
     expect(multi.fileName).toEqual("text-a1.txt")
   })
 
-  it("Matching multiple files with mode=ALWAYS fails", async () => {
+  it("Matching multiple files with mode=YES fails", async () => {
     try {
       const items = await processQualifiers(new PublicationConfig.Qualifier(
         "text*",
         undefined,
-        PublicationConfig.QualifierPackMode.NEVER
+        PublicationConfig.QualifierPackMode.NO
       ))
       fail("Should have failed since multiple files can not be single")
     } catch (e) {

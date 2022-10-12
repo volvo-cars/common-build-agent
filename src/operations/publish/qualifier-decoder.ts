@@ -23,7 +23,7 @@ export namespace QualifierDecoder {
 
     export class Decoded {
         constructor(
-            readonly mode: PublicationConfig.QualifierPackMode.ALWAYS | PublicationConfig.QualifierPackMode.NEVER,
+            readonly mode: PublicationConfig.QualifierPackMode.YES | PublicationConfig.QualifierPackMode.NO,
             readonly basePath: string | undefined
         ) { }
     }
@@ -35,7 +35,7 @@ export namespace QualifierDecoder {
         let nonGlobParts = _.takeWhile(parts, part => { return part.indexOf('*') < 0 })
         const isGlobBased = nonGlobParts.length < parts.length
         let configuredPackMode = qualifier.pack ?? PublicationConfig.QualifierPackMode.AUTO
-        let effectivePackMode: PublicationConfig.QualifierPackMode.ALWAYS | PublicationConfig.QualifierPackMode.NEVER = configuredPackMode === PublicationConfig.QualifierPackMode.AUTO ? (isGlobBased ? PublicationConfig.QualifierPackMode.ALWAYS : PublicationConfig.QualifierPackMode.NEVER) : configuredPackMode
+        let effectivePackMode: PublicationConfig.QualifierPackMode.YES | PublicationConfig.QualifierPackMode.NO = configuredPackMode === PublicationConfig.QualifierPackMode.AUTO ? (isGlobBased ? PublicationConfig.QualifierPackMode.YES : PublicationConfig.QualifierPackMode.NO) : configuredPackMode
         return new Decoded(effectivePackMode, nonGlobParts.length > 0 ? nonGlobParts.join("/") : undefined)
     }
 }

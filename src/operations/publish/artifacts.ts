@@ -84,14 +84,14 @@ export namespace Artifacts {
                     artifact.path
                 )
 
-                if (decodedQualifier.mode === PublicationConfig.QualifierPackMode.ALWAYS) {
+                if (decodedQualifier.mode === PublicationConfig.QualifierPackMode.YES) {
                     const dirPath = [baseDir, decodedQualifier.basePath].filter(s => { return s }).join("/")
                     const defaultName = (_.last(decodedQualifier.basePath?.split("/")) || "no-name") + ".tar.gz"
                     const fileName = qualifier.name || defaultName
                     return new Artifacts.MultiArtifactItem(meta, dirPath, matchedFiles.map(m => {
                         return m.substring(decodedQualifier.basePath ? decodedQualifier.basePath.length + 1 : 0)
                     }).sort(), fileName)
-                } else if (decodedQualifier.mode === PublicationConfig.QualifierPackMode.NEVER) {
+                } else if (decodedQualifier.mode === PublicationConfig.QualifierPackMode.NO) {
                     if (matchedFiles.length === 1) {
                         const matchedFile = matchedFiles[0]
                         const defaultFileName = <string>_.last(matchedFile.split("/"))

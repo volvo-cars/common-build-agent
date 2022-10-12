@@ -6,9 +6,9 @@ export namespace PublicationConfig {
 
 
   export enum QualifierPackMode {
-    ALWAYS = "always",
+    YES = "yes",
     AUTO = "auto",
-    NEVER = "never"
+    NO = "no"
   }
 
   /**
