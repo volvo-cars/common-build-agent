@@ -30,7 +30,7 @@ steps.push(new BuildConfig.BuildCompose.Step(
     ])
 ))
 steps.push(new BuildConfig.BuildDockerBuild.Step(
-    StepBuilder.imageName("agent"), "docker/Dockerfile", undefined, undefined
+    StepBuilder.imageName("agent"), "docker/Dockerfile", undefined, undefined, undefined
 ))
 
 const waiter = Waiter.create()

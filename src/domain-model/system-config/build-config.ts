@@ -105,12 +105,16 @@ export namespace BuildConfig {
             @Expose()
             public labels: string | undefined
 
-            constructor(name: string, file: string, target: string | undefined, labels: string | undefined) {
+            @Expose()
+            public build_arg: string | undefined
+
+            constructor(name: string, file: string, target: string | undefined, labels: string | undefined, build_arg: string | undefined) {
                 super()
                 this.name = name
                 this.file = file
                 this.target = target
                 this.labels = labels
+                this.build_arg = build_arg
             }
         };
     }
