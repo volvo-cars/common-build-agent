@@ -10,7 +10,7 @@ import { StepCommand } from "../../src/operations/build/steps/step-command"
 import { Operations } from "../../src/operations/operation"
 import { FileReader } from "../../src/utils/file-reader"
 import { Waiter } from "../../src/utils/waiter"
-import { Secrets } from "../../src/operations/build/secrets-writer"
+import { SecretsImpl } from "../../src/operations/secrets/secrets-impl"
 
 const args = yargs
     .option("secretsPaths", { type: "string", demandOption: true, describe: "Format: external:internal" })
@@ -30,7 +30,7 @@ steps.push(new BuildConfig.BuildCompose.Step(
     ])
 ))
 steps.push(new BuildConfig.BuildDockerBuild.Step(
-    StepBuilder.imageName("agent"), "docker/Dockerfile", undefined, undefined, undefined
+    StepBuilder.imageName("agent"), "docker/Dockerfile", undefined, undefined
 ))
 
 const waiter = Waiter.create()
@@ -45,21 +45,27 @@ if (!externalPath || !internalPath) {
     throw new Error(`secretsPaths is malformed: ${args.secretsPaths}`)
 }
 
-const secretsPaths = new Secrets.SecretPaths(externalPath, internalPath)
-if (fs.existsSync(secretsPaths.internalPath)) {
-    fs.rmSync(secretsPaths.internalPath, { force: true, recursive: true })
+if (fs.existsSync(internalPath)) {
+    fs.rmSync(internalPath, { force: true, recursive: true })
 }
-const operation = new BuildOperation(config, [StepCommand.Phase.BUILD, StepCommand.Phase.POST], fileReader, secretsPaths, undefined)
+const secretsService = new SecretsImpl(externalPath)
+const operation = new BuildOperation(config, [StepCommand.Phase.BUILD, StepCommand.Phase.POST], fileReader, secretsService, undefined)
+
+const vaultService = new MockVaultService({ "csp/common-build/service": "USER:SECRET", "test/path/1": "test-value-1" })
+
 
 const commands: string[] = []
 const receiver = (bash: string) => {
     commands.push(bash)
 }
-const vaultService = new MockVaultService({ "csp/common-build/some-secret": "USER:DUMMY", "test/path/1": "test-value-1" })
-operation.execute(id, receiver, vaultService)
+
+operation.execute(id, receiver)
     .then(() => {
         console.log(commands.join("\n"))
-    }).finally(() => {
+    }).then(() => {
+        return secretsService.writeSecrets(vaultService, internalPath)
+    })
+    .finally(() => {
         waiter.okToQuit()
     })
 

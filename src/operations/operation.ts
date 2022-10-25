@@ -16,7 +16,7 @@ export namespace Operations {
 
         protected constructor() { }
 
-        abstract execute(id: Id, receiver: OutputReceiver, vaultService: VaultService): Promise<void>
+        abstract execute(id: Id, receiver: OutputReceiver): Promise<void>
     }
 }
 
@@ -24,8 +24,8 @@ export class MultiOperation extends Operations.Operation {
     constructor(private operations: Operations.Operation[]) {
         super()
     }
-    execute(id: Operations.Id, receiver: Operations.OutputReceiver, vaultService: VaultService): Promise<void> {
-        return Promise.all(this.operations.map(o => { return o.execute(id, receiver, vaultService) })).then(() => { })
+    execute(id: Operations.Id, receiver: Operations.OutputReceiver): Promise<void> {
+        return Promise.all(this.operations.map(o => { return o.execute(id, receiver) })).then(() => { })
     }
 
 }

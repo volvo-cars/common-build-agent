@@ -5,9 +5,9 @@ import { StepBuilder } from "./step-builder";
 export class StepBuilderNative implements StepBuilder.Builder {
 
     constructor(private readonly config: BuildConfig.BuildNative.Step) { }
-    generateBuild(step: number, id: Operations.Id, visitor: StepBuilder.Visitor): void {
+    generateBuild(context: StepBuilder.Context, id: Operations.Id, visitor: StepBuilder.Visitor): void {
         visitor.addSnippet(this.config.cmd)
     }
-    generateTearDown(step: number, id: Operations.Id, visitor: StepBuilder.Visitor): void { }
+    generateTearDown(context: StepBuilder.TeardownContext, id: Operations.Id, visitor: StepBuilder.Visitor): void { }
 }
 

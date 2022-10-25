@@ -5,7 +5,7 @@ import { BuildConfig } from './domain-model/system-config/build-config'
 import { Codec } from './domain-model/system-config/codec'
 import { PublicationConfig } from './domain-model/system-config/publication-config'
 import { BuildOperation } from './operations/build/build-operation'
-import { Secrets } from './operations/build/secrets-writer'
+import { SecretsImpl } from './operations/secrets/secrets-impl'
 import { StepCommand } from './operations/build/steps/step-command'
 import { CommonBuildDependenciesOperations } from './operations/dependencies/common-build-dependencies-operation'
 import { GoogleRepoOperation } from './operations/dependencies/google-repo-operation'
@@ -13,7 +13,7 @@ import { MultiOperation, Operations } from './operations/operation'
 import { PublishArtifactsOperation } from './operations/publish/publish-artifacts-operation'
 import { FileReader } from './utils/file-reader'
 import { Waiter } from "./utils/waiter"
-import { VaultOptions, VaultServiceImpl } from './vault/vault-service'
+import { VaultOptions, VaultService, VaultServiceImpl } from './vault/vault-service'
 
 const scriptTimeOut = 1 * 24 * 60 * 60 * 1000
 
@@ -28,16 +28,7 @@ const execute = (opCreate: Promise<Operations.Operation | string>, id: Operation
       const receiver = (s: string) => {
         console.log(s)
       }
-      const vaultToken = process.env.VAULT_TOKEN
-      if (!vaultToken) {
-        throw new Error("Env VAULT_TOKEN is missing")
-      }
-      const vaultService = new VaultServiceImpl(new VaultOptions(
-        "v1",
-        "https://winterfell.csp-dev.net",
-        vaultToken,
-      ))
-      return op.execute(id, receiver, vaultService)
+      return op.execute(id, receiver)
         .catch(e => {
           console.log(`Error in command execution: ${e}`)
           return Promise.reject(e)
@@ -51,6 +42,18 @@ const execute = (opCreate: Promise<Operations.Operation | string>, id: Operation
   })
 }
 
+const createVaultService = (): VaultService => {
+  const vaultToken = process.env.VAULT_TOKEN
+  if (!vaultToken) {
+    throw new Error("Env VAULT_TOKEN is missing")
+  }
+  return new VaultServiceImpl(new VaultOptions(
+    "v1",
+    "https://winterfell.csp-dev.net",
+    vaultToken,
+  ))
+}
+
 yargs
   .command(
     "dependencies",
@@ -62,7 +65,8 @@ yargs
     (args) => {
       const id = new Operations.Id(args.session)
       const fileReader = new FileReader()
-      execute(Promise.resolve(new MultiOperation([new GoogleRepoOperation(fileReader), new CommonBuildDependenciesOperations(fileReader)])), id)
+      const vaultService = createVaultService()
+      execute(Promise.resolve(new MultiOperation([new GoogleRepoOperation(fileReader, vaultService), new CommonBuildDependenciesOperations(fileReader, vaultService)])), id)
     }
   )
   .command(
@@ -78,12 +82,13 @@ yargs
     (args) => {
       const fileReader = new FileReader()
       const id = new Operations.Id(args.session)
+      const vaultService = createVaultService()
       execute(fileReader.getFile(PublicationConfig.FILE_PATH).then(content => {
         if (content) {
           const publicationContent = content.toString()
           const publicationConfig = Codec.toInstance(YAML.parse(publicationContent), PublicationConfig.Config)
           if (publicationConfig.artifacts) {
-            return new PublishArtifactsOperation(publicationConfig.artifacts)
+            return new PublishArtifactsOperation(publicationConfig.artifacts, vaultService)
           } else {
             return `Missing artifacts section in ${PublicationConfig.FILE_PATH}.`
           }
@@ -104,21 +109,24 @@ yargs
     }, (args) => {
       const fileReader = new FileReader()
       const id = new Operations.Id(createUid())
-
+      const [externalPath, internalPath] = args.secretsPaths.split(":")
+      const secrets = new SecretsImpl(externalPath)
+      const vaultService = createVaultService()
       execute(fileReader.getFile(BuildConfig.FILE_PATH).then(content => {
         if (content) {
           const buildContent = content.toString()
           const buildConfig = Codec.toInstance(YAML.parse(buildContent), BuildConfig.Config)
-          const [externalPath, internalPath] = args.secretsPaths.split(":")
           if (externalPath && internalPath) {
-            return new BuildOperation(buildConfig, <StepCommand.Phase[]>args.phase || [], fileReader, new Secrets.SecretPaths(externalPath, internalPath), args.toolImage)
+            return new BuildOperation(buildConfig, <StepCommand.Phase[]>args.phase || [], fileReader, secrets, args.toolImage)
           } else {
             return Promise.reject(new Error(`Bad format for secretsPaths: ${args.secretsPaths}`))
           }
         } else {
           return `No Common-Build. No ${BuildConfig.FILE_PATH} file found. `
         }
-      }), id)
+      }), id).then(() => {
+        return secrets.writeSecrets(vaultService, internalPath)
+      })
     })
   .demandCommand()
   .help()

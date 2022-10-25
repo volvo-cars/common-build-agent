@@ -5,14 +5,14 @@ import { Operations } from "../operation";
 import { ArtifactoryService, ArtifactRef } from './artifactory-service';
 import { Artifacts } from './artifacts';
 export class PublishArtifactsOperation extends Operations.Operation {
-    constructor(private publicationArtifacts: PublicationConfig.Artifacts) {
+    constructor(private publicationArtifacts: PublicationConfig.Artifacts, private vaultService: VaultService) {
         super()
     }
 
-    execute(id: Operations.Id, receiver: Operations.OutputReceiver, vaultService: VaultService): Promise<void> {
+    execute(id: Operations.Id, receiver: Operations.OutputReceiver): Promise<void> {
         return GitUtils.getSha().then(gitSha => {
 
-            const artifactoryService = new ArtifactoryService(vaultService)
+            const artifactoryService = new ArtifactoryService(this.vaultService)
             return Artifacts.createArtifactItems(id, this.publicationArtifacts).then(artifactItems => {
                 return Promise.all(artifactItems.map(item => {
                     console.log(`Publishing artifact: ${item.meta.repository}/${item.meta.path}/${item.fileName} (${item.description})`)

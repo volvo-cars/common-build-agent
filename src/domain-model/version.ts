@@ -4,8 +4,14 @@ import _ from 'lodash'
 export class Version {
     readonly segments: number[]
     private constructor(segments: number[]) {
+        assert(segments.length > 1, "A version with zero segments [] is illegal")
         this.segments = segments
     }
+
+    get major(): number {
+        return this.segments[0]
+    }
+
     static create(version: string): Version {
         const v = Version.parse(version)
         if (v) {

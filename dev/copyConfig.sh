@@ -6,6 +6,7 @@ rm -r src/domain-model/buildlog-events
 rm -r src/domain-model/repository-model/repository-model.ts
 rm src/domain-model/system-config/majors.ts
 rm src/domain-model/system-config/repository-config.ts
+rm src/domain-model/refs.ts
 
 
 

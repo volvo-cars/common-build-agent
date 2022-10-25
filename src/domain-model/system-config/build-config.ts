@@ -106,15 +106,18 @@ export namespace BuildConfig {
             public labels: string | undefined
 
             @Expose()
-            public build_arg: string | undefined
+            @Type(() => String)
+            public secrets: Map<string, string> = new Map<string, string>() // Bug in transform. Can't define Map<,string,string>|undefined
 
-            constructor(name: string, file: string, target: string | undefined, labels: string | undefined, build_arg: string | undefined) {
+            constructor(name: string, file: string, target: string | undefined, labels: string | undefined, secrets?: Map<string, string>) {
                 super()
                 this.name = name
                 this.file = file
                 this.target = target
                 this.labels = labels
-                this.build_arg = build_arg
+                if (secrets) {
+                    this.secrets = secrets
+                }
             }
         };
     }

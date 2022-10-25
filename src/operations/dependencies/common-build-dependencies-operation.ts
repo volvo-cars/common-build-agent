@@ -9,21 +9,21 @@ import { VaultService } from "../../vault/vault-service"
 import { Operations } from "../operation"
 import { ArtifactoryService, ArtifactRef } from "../publish/artifactory-service"
 export class CommonBuildDependenciesOperations implements Operations.Operation {
-    constructor(private fileReader: FileReader) { }
-    execute(id: Operations.Id, receiver: Operations.OutputReceiver, vaultService: VaultService): Promise<void> {
+    constructor(private fileReader: FileReader, private vaultService: VaultService) { }
+    execute(id: Operations.Id, receiver: Operations.OutputReceiver): Promise<void> {
         return this.fileReader.getFile(DependenciesConfig.FILE_PATH).then(config => {
             if (config) {
                 console.log(`Processing ${DependenciesConfig.FILE_PATH}`)
-                return this.process(Codec.toInstance(Yaml.parse(config.toString()), DependenciesConfig.Config), id, vaultService)
+                return this.process(Codec.toInstance(Yaml.parse(config.toString()), DependenciesConfig.Config), id)
             }
         })
     }
 
-    process(config: DependenciesConfig.Config, id: Operations.Id, vaultService: VaultService): Promise<void> {
+    process(config: DependenciesConfig.Config, id: Operations.Id): Promise<void> {
         console.log(`Executing download dependencies...`)
         const artifactsConfig = config.artifacts
         if (artifactsConfig) {
-            const artifactoryService = new ArtifactoryService(vaultService)
+            const artifactoryService = new ArtifactoryService(this.vaultService)
             return Promise.all(artifactsConfig.items.map(artifact => {
                 return Promise.all(artifact.files.map(file => {
                     const ref = new ArtifactRef(artifact.path, artifact.remote || artifactsConfig.remote, artifact.repository || artifactsConfig.repository, `${artifact.revision}/${file.name}`)

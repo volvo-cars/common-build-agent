@@ -3,15 +3,14 @@ import Yaml from 'yaml';
 import { ImageVersionUtil } from "../../../domain-model/image-version-util";
 import { BuildConfig } from "../../../domain-model/system-config/build-config";
 import { Operations } from "../../operation";
-import { Secrets } from "../secrets-writer";
 import { StepBuilder } from "./step-builder";
 
 export class StepBuilderCompose implements StepBuilder.Builder {
 
 
-    constructor(private readonly config: BuildConfig.BuildCompose.Step, private readonly secretsService: Secrets.Service) { }
+    constructor(private readonly config: BuildConfig.BuildCompose.Step) { }
 
-    generateBuild(step: number, id: Operations.Id, visitor: StepBuilder.Visitor): void {
+    generateBuild(context: StepBuilder.Context, id: Operations.Id, visitor: StepBuilder.Visitor): void {
 
         const nodes = this.config.nodes
         const commands = this.config.commands
@@ -33,8 +32,8 @@ export class StepBuilderCompose implements StepBuilder.Builder {
 
         const secretsSection = secrets ? {
             secrets: Array.from(secrets.entries()).reduce((acc, [name, vaultPath]) => {
-                const mountedSecret = this.secretsService.mountSecret(name, vaultPath)
-                acc[mountedSecret.name] = { file: mountedSecret.filePath }
+                const mountedSecret = context.secrets.mountSecret(vaultPath)
+                acc[name] = { file: mountedSecret.path }
                 return acc
             }, <Record<string, object>>{})
         } : {}
@@ -45,27 +44,27 @@ echo docker compose up...
         const dockerCompose = Yaml.stringify(_.merge({}, versionSection, servicesSection, secretsSection))
         snippets.push(`
 set +e # read returns 1 on success
-read -r -d '' dockerComposeYml${step} << 'EOF'
+read -r -d '' dockerComposeYml${context.stepIndex} << 'EOF'
 ${dockerCompose}
 EOF
 set -e
     `)
 
         snippets.push(`
-shutdown${step} () {
+shutdown${context.stepIndex} () {
     echo "docker compose down..."
-    echo "$dockerComposeYml${step}" | docker compose -f - -p cb-${id.session} down
+    echo "$dockerComposeYml${context.stepIndex}" | docker compose -f - -p cb-${id.session} down
 }
-on_error${step} () {
+on_error${context.stepIndex} () {
     echo "Error: $1 on line $2" >& 2
-    shutdown${step}
+    shutdown${context.stepIndex}
     exit $1
 }
-trap 'on_error${step} $? $LINENO' ERR
+trap 'on_error${context.stepIndex} $? $LINENO' ERR
     `)
-        snippets.push(`echo "$dockerComposeYml${step}" | docker compose -f - -p cb-${id.session} up --detach`)
+        snippets.push(`echo "$dockerComposeYml${context.stepIndex}" | docker compose -f - -p cb-${id.session} up --detach`)
         snippets.push("echo containers started:")
-        snippets.push(`echo "$dockerComposeYml${step}" | docker compose -f - -p cb-${id.session} ps`)
+        snippets.push(`echo "$dockerComposeYml${context.stepIndex}" | docker compose -f - -p cb-${id.session} ps`)
         commands.forEach(command => {
             const getSingleNodeId = (): string => {
                 if (this.config.nodes.size === 1) {
@@ -79,11 +78,11 @@ trap 'on_error${step} $? $LINENO' ERR
             snippets.push(cmd)
         })
         snippets.push(`trap - ERR`)
-        snippets.push(`shutdown${step} `)
+        snippets.push(`shutdown${context.stepIndex} `)
         visitor.addSnippet(snippets.join("\n"))
     }
 
-    generateTearDown(step: number, id: Operations.Id, visitor: StepBuilder.Visitor): void { }
+    generateTearDown(context: StepBuilder.TeardownContext, id: Operations.Id, visitor: StepBuilder.Visitor): void { }
 
     private createDockerComposeService(id: Operations.Id, nodeId: string, node: BuildConfig.BuildCompose.Node, commands: BuildConfig.BuildCompose.NodeCommand[], secretNames: string[]): object {
         const commandNode = node.entryPoint ? {
