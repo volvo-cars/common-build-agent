@@ -74,7 +74,7 @@ trap 'on_error${context.stepIndex} $? $LINENO' ERR
                 }
             }
             const nodeId = command.node || getSingleNodeId()
-            const cmd = `docker exec -w /work $(docker ps -aqf "name=${id.namedSessionKey(nodeId)}") bash -c '${command.cmd}'`
+            const cmd = `docker exec -t -w /work $(docker ps -aqf "name=${id.namedSessionKey(nodeId)}") bash -c '${command.cmd}'`
             snippets.push(cmd)
         })
         snippets.push(`trap - ERR`)
