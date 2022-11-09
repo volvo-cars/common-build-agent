@@ -32,7 +32,7 @@ export namespace DependencyRef {
         protected abstract fields(): string[]
         abstract toString(): string
         equals(other: Ref): boolean {
-            return _.isEqual(other.fields(), this.fields())
+            return this.constructor === other.constructor && _.isEqual(other.fields(), this.fields())
         }
     }
 

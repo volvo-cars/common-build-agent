@@ -55,16 +55,23 @@ export namespace PublicationConfig {
     remote?: DependencyRef.ArtifactRemote
     @Expose()
     repository?: DependencyRef.ArtifactRepository
+
+    @Expose()
+    @Type(() => String)
+    properties?: Map<string, string> = new Map<string, string>()
+
     constructor(
       path: DependencyRef.ArtifactPath,
       qualifiers: Qualifier[],
       remote?: DependencyRef.ArtifactRemote,
       repository?: DependencyRef.ArtifactRepository,
+      properties?: Map<string, string>
     ) {
       this.path = path
       this.qualifiers = qualifiers
       this.remote = remote
       this.repository = repository
+      this.properties = properties
     }
   }
 

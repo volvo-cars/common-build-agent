@@ -4,8 +4,6 @@ import { DomainFiles } from "./domain-files"
 
 export namespace DependenciesConfig {
 
-
-
     export class ArtfifactFile {
         @Expose()
         name: string
@@ -66,12 +64,16 @@ export namespace DependenciesConfig {
         @Expose()
         toDir: string | undefined
 
+        @Expose()
+        logFile: string | undefined
 
-        constructor(remote: DependencyRef.ArtifactRemote, repository: DependencyRef.ArtifactRepository, items: Artifact[], toDir: string | undefined) {
+
+        constructor(remote: DependencyRef.ArtifactRemote, repository: DependencyRef.ArtifactRepository, items: Artifact[], toDir: string | undefined, logFile: string | undefined) {
             this.remote = remote
             this.repository = repository
             this.items = items
             this.toDir = toDir
+            this.logFile = logFile
         }
     }
 

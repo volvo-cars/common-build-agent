@@ -36,7 +36,7 @@ steps.push(new BuildConfig.BuildDockerBuild.Step(
 const waiter = Waiter.create()
 
 const build = new BuildConfig.Build(steps)
-const config = new BuildConfig.Config(build, "latest")
+const config = new BuildConfig.Config("dummy", 1, build)
 const sessionId = new Date().getTime().toString()
 const id = new Operations.Id(sessionId)
 const fileReader = new FileReader()

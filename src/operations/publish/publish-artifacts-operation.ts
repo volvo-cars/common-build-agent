@@ -15,9 +15,10 @@ export class PublishArtifactsOperation extends Operations.Operation {
             const artifactoryService = new ArtifactoryService(this.vaultService)
             return Artifacts.createArtifactItems(id, this.publicationArtifacts).then(artifactItems => {
                 return Promise.all(artifactItems.map(item => {
-                    console.log(`Publishing artifact: ${item.meta.repository}/${item.meta.path}/${item.fileName} (${item.description})`)
-                    return artifactoryService.publish(new ArtifactRef(
-                        item.meta.path, item.meta.remote, item.meta.repository, `${gitSha.sha}/${item.fileName}`), item.stream()
+                    const artifactRef = new ArtifactRef(
+                        item.meta.path, item.meta.remote, item.meta.repository, gitSha.sha, item.fileName)
+                    console.log(`Publishing artifact: ${artifactRef} (${item.description})`)
+                    return artifactoryService.publish(artifactRef, item.stream()
                     ).then((publishedContent) => {
                         console.log(`Published artifact: ${publishedContent.url}`)
                     })

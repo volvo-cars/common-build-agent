@@ -19,7 +19,7 @@ export class Codec {
     }
 
     static toPlain(instance: object): object {
-        return instanceToPlain(instance, { excludeExtraneousValues: true })
+        return instanceToPlain(instance, { exposeUnsetFields: false })
     }
     static toJson(instance: object): string {
         return JSON.stringify(this.toPlain(instance), null, 2)

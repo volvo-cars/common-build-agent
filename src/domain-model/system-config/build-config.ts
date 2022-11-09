@@ -17,7 +17,7 @@ export namespace BuildConfig {
                 super()
                 this.cmd = cmd
             }
-        };
+        }
     }
 
 
@@ -93,6 +93,7 @@ export namespace BuildConfig {
     export namespace BuildDockerBuild {
 
         export class Step extends BuildStep {
+
             @Expose()
             public name: string
 
@@ -153,12 +154,11 @@ export namespace BuildConfig {
                     { value: BuildDockerBuild.Step, name: 'build' },
                     { value: BuildNative.Step, name: 'native' },
                     { value: BuildJenkins.Step, name: 'jenkins' }
-                ],
-            }
+                ]
+            },
+            keepDiscriminatorProperty: false
         })
-
         @Expose()
-        @Type(() => BuildStep)
         public steps: BuildStep[]
 
         constructor(steps: BuildStep[]) {
@@ -168,15 +168,21 @@ export namespace BuildConfig {
     }
 
     export class Config {
+
+        @Expose()
+        public toolImage: string
+
+        @Expose()
+        public version: number
+
         @Expose()
         @Type(() => Build)
         public build: Build
 
-        @Expose()
-        public version?: string
 
-        constructor(build: Build, version?: string) {
+        constructor(toolImage: string, version: number, build: Build) {
             this.build = build
+            this.toolImage = toolImage
             this.version = version
         }
     }
