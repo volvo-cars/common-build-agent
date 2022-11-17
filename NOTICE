@@ -9643,7 +9643,9 @@ Copyright (c) 2021 Titus Wormer
 Copyright Joyent, Inc. and other Node contributors
 Copyright (c) 2014-present Sebastian McKenzie and other contributors
 ** @babel/generator; version 7.19.3 -- https://babel.dev/docs/en/next/babel-generator
+Copyright (c) 2014-present Sebastian McKenzie and other contributors
 ** @babel/helper-compilation-targets; version 7.19.3 -- 
+Copyright (c) 2014-present Sebastian McKenzie and other contributors
 ** @babel/helper-environment-visitor; version 7.18.9 -- https://babel.dev/docs/en/next/babel-helper-environment-visitor
 Copyright (c) 2014-present Sebastian McKenzie and other contributors
 ** @babel/helper-function-name; version 7.19.0 -- https://babel.dev/docs/en/next/babel-helper-function-name
@@ -9700,7 +9702,9 @@ Copyright (c) 2014-present Sebastian McKenzie and other contributors
 ** @babel/template; version 7.18.10 -- https://babel.dev/docs/en/next/babel-template
 Copyright (c) 2014-present Sebastian McKenzie and other contributors
 ** @babel/traverse; version 7.19.3 -- https://babel.dev/docs/en/next/babel-traverse
+Copyright (c) 2014-present Sebastian McKenzie and other contributors
 ** @babel/types; version 7.19.3 -- https://babel.dev/docs/en/next/babel-types
+Copyright (c) 2014-present Sebastian McKenzie and other contributors
 
 MIT License
 
@@ -10076,6 +10080,7 @@ Copyright (c) Microsoft Corporation
 ** @types/babel__template; version 7.4.1 -- https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/babel__template
 Copyright (c) Microsoft Corporation
 ** @types/babel__traverse; version 7.18.2 -- https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/babel__traverse
+Copyright (c) Microsoft Corporation
 ** @types/cheerio; version 0.22.31 -- https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/cheerio
 Copyright (c) Microsoft Corporation
 ** @types/cli-color; version 2.0.2 -- https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/cli-color
@@ -10099,6 +10104,7 @@ Copyright (c) Microsoft Corporation
 ** @types/node; version 17.0.45 -- https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node
 Copyright (c) Microsoft Corporation
 ** @types/prettier; version 2.7.1 -- https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/prettier
+Copyright (c) Microsoft Corporation
 ** @types/qs; version 6.9.7 -- https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/qs
 Copyright (c) Microsoft Corporation
 ** @types/ssh2; version 1.11.6 -- https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/ssh2
@@ -11019,6 +11025,7 @@ THE SOFTWARE.
 ------
 
 ** @babel/parser; version 7.19.3 -- https://babel.dev/docs/en/next/babel-parser
+Copyright (c) 2012-2014 by various contributors
 
 Copyright (C) 2012-2014 by various contributors (see AUTHORS)
 
