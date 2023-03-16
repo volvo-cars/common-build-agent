@@ -1,6 +1,6 @@
 # Common Build Agent
 
-The Common Build Agent (CBA) is the part of Common Build that executes on remote build nodes (Cynosure Build resource) at build time. The CBA offers a set of commands that generates plain bash scripts for the Build node to execute.
+The Common Build Agent (CBA) is a part of the Common Build that executes on remote build nodes (Cynosure Build resource) at build time. The CBA offers a set of commands that generates plain bash scripts for the Build node to execute.
 
 The CBA is packaged as the Docker image `common-build-agent` and requires `docker` to be installed on the build nodes.
 
